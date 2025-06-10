@@ -21,21 +21,9 @@
         font-size: 16px;
         background-color: white;
         color: black;
-        box-shadow: 0px 10px 13px -7px #000000,
-          5px 5px 15px 5px rgba(0, 0, 0, 0);
         border: 5px solid transparent;
         border-radius: 27px;
-        transition: background-color 0.2s ease, color 0.2s ease;
-      }
-
-      #toggle-button:hover {
-        background-color: #f0f0f0;
-      }
-
-      #toggle-button:active {
-        background-color: #cad5d9;
-        color: white;
-        transform: translateX(-50%) scale(0.96);
+        box-shadow: 0px 10px 13px -7px #000, 5px 5px 15px 5px rgba(0, 0, 0, 0);
       }
 
       .ar-link {
@@ -55,88 +43,66 @@
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
       }
 
-      .ar-link:hover {
-        background-color: #45a049;
-      }
-
       .target-text {
         opacity: 0;
         transition: opacity 0.3s ease;
       }
 
-      .show-text .target-text {
-        opacity: 1;
-      }
-
       .tv-frame {
-        position: absolute;
         width: 1.1;
         height: 0.6;
         background-color: #333;
         border-radius: 0.1;
-        z-index: -1;
       }
 
       .tv-stand {
-        position: absolute;
         width: 0.2;
         height: 0.1;
         background-color: #333;
-        bottom: -0.1;
-        left: 0.45;
       }
 
-      .video-container {
-        position: absolute;
-        width: 1;
-        height: 0.5;
+      body {
+        margin: 0;
         overflow: hidden;
       }
     </style>
   </head>
 
-  <body style="margin: 0; overflow: hidden">
+  <body>
     <button id="toggle-button" onclick="toggleInfo()">Info</button>
     <a href="#" class="ar-link" id="websiteLink">Visit Website</a>
 
-    <video
-      id="ar-video"
-      src="https://driyanyy.github.io/project/WhatsApp%20Video%202025-05-20%20at%2010.08.10_53f8c34b.mp4"
-      loop
-      autoplay
-      muted
-      playsinline
-      style="display: none"
-    ></video>
-
     <a-scene
-      mindar-image="https://driyanyy.github.io/project/targets.mind; 
-                    uiScanning: no; 
-                    filterMinCF: 0.0001; 
-                    filterBeta: 0.001; 
-                    missTolerance: 5; 
-                    warmupTolerance: 3;"
+      mindar-image="imageTargetSrc: https://driyanyy.github.io/project/targets.mind; uiScanning: no"
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false"
       renderer="precision: high; antialias: true;"
     >
+      <a-assets>
+        <video
+          id="ar-video"
+          src="https://driyanyy.github.io/project/WhatsApp%20Video%202025-05-20%20at%2010.08.10_53f8c34b.mp4"
+          autoplay
+          loop
+          muted
+          playsinline
+          crossorigin="anonymous"
+        ></video>
+      </a-assets>
+
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
+      <!-- Target 0: With Video -->
       <a-entity mindar-image-target="targetIndex: 0" id="target-0">
-        <a-entity class="tv-frame" position="0 0 -0.01">
-          <a-entity class="tv-stand"></a-entity>
-        </a-entity>
-        <a-entity class="video-container" position="0 0 0">
-          <a-video
-            id="video-plane"
-            src="https://driyanyy.github.io/project/WhatsApp%20Video%202025-05-20%20at%2010.08.10_53f8c34b.mp4"
-            position="0 0 0"
-            width="1"
-            height="0.45"
-            scale="1 1 1"
-            visible="true"
-          ></a-video>
-        </a-entity>
+        <a-plane color="#333" width="1.1" height="0.6" position="0 0 -0.01"></a-plane>
+        <a-video
+          id="video-plane"
+          src="#ar-video"
+          position="0 0 0"
+          width="1"
+          height="0.45"
+          visible="true"
+        ></a-video>
         <a-text
           class="target-text"
           value="Link A"
@@ -146,6 +112,7 @@
         ></a-text>
       </a-entity>
 
+      <!-- Target 1: Only Text -->
       <a-entity mindar-image-target="targetIndex: 1" id="target-1">
         <a-text
           class="target-text"
@@ -159,23 +126,20 @@
 
     <script>
       let isInfoShown = false;
+      let currentTarget = null;
+
       const websiteLink = document.getElementById("websiteLink");
       const video = document.getElementById("ar-video");
       const videoPlane = document.getElementById("video-plane");
-      const scene = document.querySelector("a-scene");
       const targetTexts = document.querySelectorAll(".target-text");
 
-      let currentTarget = null;
-
       function hideAllTexts() {
-        targetTexts.forEach(text => {
-          text.setAttribute("opacity", "0");
-        });
+        targetTexts.forEach(text => text.setAttribute("opacity", "0"));
       }
 
       function showCurrentText() {
         if (currentTarget === "target-0") {
-          document.querySelector("#target-0 .target-text").setAttribute("opacity", isInfoShown ? "1" : "0");
+          document.querySelector("#target-0 .target-text").setAttribute("opacity", "1");
         } else if (currentTarget === "target-1") {
           document.querySelector("#target-1 .target-text").setAttribute("opacity", "1");
         }
@@ -190,8 +154,10 @@
           video.pause();
           videoPlane.setAttribute("visible", false);
           showLinkForTarget(currentTarget);
+          showCurrentText();
         } else {
           hideLink();
+          hideAllTexts();
           videoPlane.setAttribute("visible", true);
           video.play();
         }
@@ -212,51 +178,35 @@
         websiteLink.style.display = "none";
       }
 
-      const target0 = document.querySelector("#target-0");
-      const target1 = document.querySelector("#target-1");
-
-      target0.addEventListener("targetFound", () => {
+      document.querySelector("#target-0").addEventListener("targetFound", () => {
         currentTarget = "target-0";
         if (!isInfoShown) {
-          videoPlane.setAttribute("visible", true);
           video.play();
+          videoPlane.setAttribute("visible", true);
         }
       });
 
-      target0.addEventListener("targetLost", () => {
+      document.querySelector("#target-0").addEventListener("targetLost", () => {
         currentTarget = null;
         video.pause();
         videoPlane.setAttribute("visible", false);
-        hideLink();
-      });
-
-      target1.addEventListener("targetFound", () => {
-        currentTarget = "target-1";
-        if (!isInfoShown) {
-          hideAllTexts();
-        } else {
-          document.querySelector("#target-1 .target-text").setAttribute("opacity", "1");
-        }
-      });
-
-      target1.addEventListener("targetLost", () => {
-        currentTarget = null;
         hideLink();
         hideAllTexts();
         isInfoShown = false;
       });
 
-      document.addEventListener("DOMContentLoaded", async () => {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } },
-          });
-          video.srcObject = stream;
-          video.setAttribute("playsinline", true);
-          video.play();
-        } catch (err) {
-          console.warn("Camera access failed:", err);
+      document.querySelector("#target-1").addEventListener("targetFound", () => {
+        currentTarget = "target-1";
+        if (isInfoShown) {
+          showCurrentText();
         }
+      });
+
+      document.querySelector("#target-1").addEventListener("targetLost", () => {
+        currentTarget = null;
+        hideLink();
+        hideAllTexts();
+        isInfoShown = false;
       });
     </script>
   </body>
