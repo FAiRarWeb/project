@@ -64,10 +64,6 @@
         transition: opacity 0.3s ease;
       }
 
-      .show-text .target-text {
-        opacity: 1;
-      }
-
       .tv-frame {
         position: absolute;
         width: 1.1;
@@ -122,6 +118,7 @@
     >
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
+      <!-- Image Target 0 -->
       <a-entity mindar-image-target="targetIndex: 0" id="target-0">
         <a-entity class="tv-frame" position="0 0 -0.01">
           <a-entity class="tv-stand"></a-entity>
@@ -129,7 +126,7 @@
         <a-entity class="video-container" position="0 0 0">
           <a-video
             id="video-plane"
-            src="https://driyanyy.github.io/project/WhatsApp%20Video%202025-05-20%20at%2010.08.10_53f8c34b.mp4"
+            src="#ar-video"
             position="0 0 0"
             width="1"
             height="0.45"
@@ -146,12 +143,26 @@
         ></a-text>
       </a-entity>
 
+      <!-- Image Target 1 - Duplicate video + text -->
       <a-entity mindar-image-target="targetIndex: 1" id="target-1">
+        <a-entity class="tv-frame" position="0 0 -0.01">
+          <a-entity class="tv-stand"></a-entity>
+        </a-entity>
+        <a-entity class="video-container" position="0 0 0">
+          <a-video
+            src="#ar-video"
+            position="0 0 0"
+            width="1"
+            height="0.45"
+            scale="1 1 1"
+            visible="true"
+          ></a-video>
+        </a-entity>
         <a-text
           class="target-text"
-          value="Link B"
-          color="yellow"
-          position="0 0.5 0"
+          value="Link A"
+          color="white"
+          position="0 0.6 0"
           scale="0.5 0.5 0.5"
         ></a-text>
       </a-entity>
@@ -162,7 +173,6 @@
       const websiteLink = document.getElementById("websiteLink");
       const video = document.getElementById("ar-video");
       const videoPlane = document.getElementById("video-plane");
-      const scene = document.querySelector("a-scene");
       const targetTexts = document.querySelectorAll(".target-text");
 
       let currentTarget = null;
@@ -173,14 +183,6 @@
         });
       }
 
-      function showCurrentText() {
-        if (currentTarget === "target-0") {
-          document.querySelector("#target-0 .target-text").setAttribute("opacity", isInfoShown ? "1" : "0");
-        } else if (currentTarget === "target-1") {
-          document.querySelector("#target-1 .target-text").setAttribute("opacity", "1");
-        }
-      }
-
       function toggleInfo() {
         if (!currentTarget) return;
 
@@ -188,62 +190,38 @@
 
         if (isInfoShown) {
           video.pause();
-          videoPlane.setAttribute("visible", false);
-          showLinkForTarget(currentTarget);
-        } else {
-          hideLink();
-          videoPlane.setAttribute("visible", true);
-          video.play();
-        }
-      }
-
-      function showLinkForTarget(targetId) {
-        if (targetId === "target-0") {
+          document.querySelectorAll("a-video").forEach(v => v.setAttribute("visible", false));
           websiteLink.href = "https://www.youtube.com/";
           websiteLink.textContent = "Visit YouTube";
-        } else if (targetId === "target-1") {
-          websiteLink.href = "https://www.wikipedia.org/";
-          websiteLink.textContent = "Visit Wikipedia";
-        }
-        websiteLink.style.display = "block";
-      }
-
-      function hideLink() {
-        websiteLink.style.display = "none";
-      }
-
-      const target0 = document.querySelector("#target-0");
-      const target1 = document.querySelector("#target-1");
-
-      target0.addEventListener("targetFound", () => {
-        currentTarget = "target-0";
-        if (!isInfoShown) {
-          videoPlane.setAttribute("visible", true);
-          video.play();
-        }
-      });
-
-      target0.addEventListener("targetLost", () => {
-        currentTarget = null;
-        video.pause();
-        videoPlane.setAttribute("visible", false);
-        hideLink();
-      });
-
-      target1.addEventListener("targetFound", () => {
-        currentTarget = "target-1";
-        if (!isInfoShown) {
-          hideAllTexts();
+          websiteLink.style.display = "block";
+          document.querySelector(`#${currentTarget} .target-text`).setAttribute("opacity", "1");
         } else {
-          document.querySelector("#target-1 .target-text").setAttribute("opacity", "1");
+          video.play();
+          document.querySelectorAll("a-video").forEach(v => v.setAttribute("visible", true));
+          websiteLink.style.display = "none";
+          hideAllTexts();
         }
-      });
+      }
 
-      target1.addEventListener("targetLost", () => {
-        currentTarget = null;
-        hideLink();
-        hideAllTexts();
-        isInfoShown = false;
+      const allTargets = ["target-0", "target-1"];
+      allTargets.forEach(id => {
+        const target = document.getElementById(id);
+        target.addEventListener("targetFound", () => {
+          currentTarget = id;
+          if (!isInfoShown) {
+            video.play();
+            document.querySelector(`#${id} .target-text`).setAttribute("opacity", "0");
+          } else {
+            document.querySelector(`#${id} .target-text`).setAttribute("opacity", "1");
+          }
+        });
+
+        target.addEventListener("targetLost", () => {
+          currentTarget = null;
+          video.pause();
+          websiteLink.style.display = "none";
+          hideAllTexts();
+        });
       });
 
       document.addEventListener("DOMContentLoaded", async () => {
