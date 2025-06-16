@@ -567,10 +567,18 @@
       }
 
       function startARExperience() {
-        startupScreen.classList.add("hidden");
-        arScene.style.display = "block";
-        isARStarted = true;
-        initializeCamera();
+        // Add a pressed state to the button
+        startButton.style.transform = 'translateY(0px) scale(0.98)';
+        startButton.style.backgroundColor = '#45a049';
+        startButton.style.boxShadow = '0 6px 15px rgba(76, 175, 80, 0.3)';
+
+        // Wait for the button animation to complete before starting AR
+        setTimeout(() => {
+          startupScreen.classList.add("hidden");
+          arScene.style.display = "block";
+          isARStarted = true;
+          initializeCamera();
+        }, 300); // 300ms delay to let the button hover/press animation finish
       }
 
       // Initialize the startup sequence
