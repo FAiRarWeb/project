@@ -6,7 +6,26 @@
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <style>
+      * {
+        box-sizing: border-box;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      body {
+        margin: 0;
+        overflow: hidden;
+        font-family: 'Arial', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
       .a-enter-vr {
         display: none !important;
       }
@@ -17,7 +36,8 @@
         top: 0;
         left: 0;
         width: 100%;
-        height: 100%;
+        height: 100vh;
+        height: -webkit-fill-available;
         background-color: white;
         display: flex;
         flex-direction: column;
@@ -25,6 +45,8 @@
         align-items: center;
         z-index: 10000;
         font-family: 'Arial', sans-serif;
+        padding: 20px;
+        overflow: hidden;
       }
 
       #startup-screen.hidden {
@@ -32,27 +54,31 @@
       }
 
       .logo-container {
-        margin-bottom: 50px;
+        margin-bottom: 40px;
       }
 
       .logo-text {
-        font-size: 48px;
+        font-size: clamp(32px, 8vw, 48px);
         font-weight: bold;
         color: #333;
         margin-bottom: 20px;
         text-align: center;
+        line-height: 1.2;
       }
 
       /* Artivive-style Loading Animation */
       .loading-container {
-        margin-bottom: 50px;
+        margin-bottom: 40px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
       }
 
       .loading-spinner {
-        width: 60px;
-        height: 60px;
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid #333;
+        width: clamp(50px, 12vw, 60px);
+        height: clamp(50px, 12vw, 60px);
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #333;
         border-radius: 50%;
         animation: spin 1s linear infinite;
         margin: 0 auto 20px;
@@ -69,8 +95,8 @@
 
       /* Green Checkmark */
       .checkmark-container {
-        width: 60px;
-        height: 60px;
+        width: clamp(50px, 12vw, 60px);
+        height: clamp(50px, 12vw, 60px);
         margin: 0 auto 20px;
         display: none;
       }
@@ -81,20 +107,21 @@
       }
 
       .checkmark {
-        width: 60px;
-        height: 60px;
+        width: 100%;
+        height: 100%;
         border-radius: 50%;
         background-color: #4CAF50;
         position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
       }
 
       .checkmark::after {
         content: '✓';
         color: white;
-        font-size: 30px;
+        font-size: clamp(20px, 6vw, 30px);
         font-weight: bold;
       }
 
@@ -113,10 +140,12 @@
       }
 
       .loading-text {
-        font-size: 18px;
+        font-size: clamp(16px, 4vw, 18px);
         color: #666;
         text-align: center;
         animation: pulse 2s ease-in-out infinite;
+        padding: 0 20px;
+        line-height: 1.4;
       }
 
       .loading-text.ready {
@@ -132,8 +161,8 @@
 
       /* Start Button */
       #start-button {
-        padding: 20px 60px;
-        font-size: 24px;
+        padding: clamp(15px, 4vw, 20px) clamp(40px, 12vw, 60px);
+        font-size: clamp(18px, 5vw, 24px);
         font-weight: bold;
         background-color: #333;
         color: white;
@@ -145,17 +174,21 @@
         display: none;
         outline: none;
         -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+        min-height: 50px;
+        min-width: 150px;
       }
 
       #start-button:hover {
         background-color: #4CAF50;
-        transform: translateY(-3px);
-        box-shadow: 0 15px 30px rgba(76, 175, 80, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 25px rgba(76, 175, 80, 0.4);
       }
 
       #start-button:active {
-        transform: translateY(-1px);
-        box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
+        transform: translateY(0px);
+        box-shadow: 0 6px 15px rgba(76, 175, 80, 0.3);
+        background-color: #45a049;
       }
 
       #start-button:focus {
@@ -166,6 +199,20 @@
       #start-button.show {
         display: block;
         animation: fadeInUp 0.5s ease-out;
+      }
+
+      /* Mobile-specific touch improvements */
+      @media (hover: none) and (pointer: coarse) {
+        #start-button:hover {
+          background-color: #333;
+          transform: none;
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        #start-button:active {
+          background-color: #4CAF50;
+          transform: scale(0.98);
+        }
       }
 
       @keyframes fadeInUp {
@@ -181,19 +228,23 @@
 
       #toggle-button {
         position: fixed;
-        bottom: 100px;
+        bottom: clamp(80px, 15vh, 120px);
         left: 50%;
         transform: translateX(-50%);
         z-index: 1000;
-        padding: 20px 50px;
-        font-size: 16px;
+        padding: clamp(12px, 3vw, 20px) clamp(30px, 8vw, 50px);
+        font-size: clamp(14px, 3.5vw, 16px);
         background-color: white;
         color: black;
-        box-shadow: 0px 10px 13px -7px #000000,
-          5px 5px 15px 5px rgba(0, 0, 0, 0);
-        border: 5px solid transparent;
-        border-radius: 27px;
-        transition: background-color 0.2s ease, color 0.2s ease;
+        box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.15);
+        border: 2px solid transparent;
+        border-radius: 25px;
+        transition: all 0.2s ease;
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+        min-height: 44px;
+        min-width: 80px;
       }
 
       #toggle-button:hover {
@@ -208,23 +259,34 @@
 
       .ar-link {
         position: fixed;
-        bottom: 20px;
+        bottom: clamp(20px, 4vh, 40px);
         left: 50%;
         transform: translateX(-50%);
         background-color: #4caf50;
         color: white;
-        padding: 15px 30px;
+        padding: clamp(12px, 3vw, 15px) clamp(20px, 6vw, 30px);
         border-radius: 25px;
         text-decoration: none;
         font-family: Arial, sans-serif;
-        font-size: 18px;
+        font-size: clamp(16px, 4vw, 18px);
         display: none;
         z-index: 1000;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+        min-height: 44px;
+        min-width: 120px;
+        text-align: center;
       }
 
       .ar-link:hover {
         background-color: #45a049;
+      }
+
+      .ar-link:active {
+        background-color: #3d8b40;
+        transform: translateX(-50%) scale(0.98);
       }
 
       .target-text {
@@ -256,10 +318,104 @@
         height: 0.5;
         overflow: hidden;
       }
+
+      /* Mobile-specific optimizations */
+      @media screen and (max-width: 768px) {
+        .logo-text {
+          font-size: clamp(28px, 10vw, 40px);
+          margin-bottom: 15px;
+        }
+
+        .loading-container {
+          margin-bottom: 30px;
+        }
+
+        #startup-screen {
+          padding: 15px;
+        }
+
+        .loading-spinner,
+        .checkmark-container {
+          width: clamp(45px, 15vw, 55px);
+          height: clamp(45px, 15vw, 55px);
+          margin-bottom: 15px;
+        }
+
+        .checkmark::after {
+          font-size: clamp(18px, 8vw, 25px);
+        }
+
+        .loading-text {
+          font-size: clamp(14px, 4.5vw, 16px);
+        }
+
+        #start-button {
+          padding: clamp(12px, 4vw, 18px) clamp(35px, 15vw, 55px);
+          font-size: clamp(16px, 5.5vw, 22px);
+          min-height: 48px;
+          min-width: 140px;
+        }
+      }
+
+      /* Small mobile devices */
+      @media screen and (max-width: 480px) {
+        .logo-text {
+          font-size: clamp(24px, 12vw, 36px);
+        }
+
+        #toggle-button {
+          bottom: clamp(70px, 12vh, 100px);
+          padding: clamp(10px, 3vw, 16px) clamp(25px, 8vw, 40px);
+          font-size: clamp(12px, 4vw, 14px);
+        }
+
+        .ar-link {
+          bottom: clamp(15px, 3vh, 30px);
+          padding: clamp(10px, 3vw, 12px) clamp(18px, 6vw, 25px);
+          font-size: clamp(14px, 4.5vw, 16px);
+        }
+      }
+
+      /* Landscape orientation on mobile */
+      @media screen and (max-height: 500px) and (orientation: landscape) {
+        #startup-screen {
+          padding: 10px;
+        }
+
+        .logo-container {
+          margin-bottom: 20px;
+        }
+
+        .logo-text {
+          font-size: clamp(20px, 6vh, 32px);
+          margin-bottom: 10px;
+        }
+
+        .loading-container {
+          margin-bottom: 20px;
+        }
+
+        .loading-spinner,
+        .checkmark-container {
+          width: clamp(35px, 8vh, 45px);
+          height: clamp(35px, 8vh, 45px);
+          margin-bottom: 10px;
+        }
+
+        .loading-text {
+          font-size: clamp(12px, 3vh, 14px);
+        }
+
+        #start-button {
+          padding: clamp(8px, 2vh, 12px) clamp(25px, 8vw, 40px);
+          font-size: clamp(14px, 3.5vh, 18px);
+          min-height: 40px;
+        }
+      }
     </style>
   </head>
 
-  <body style="margin: 0; overflow: hidden">
+  <body>
     <!-- Startup Screen -->
     <div id="startup-screen">
       <div class="logo-container">
