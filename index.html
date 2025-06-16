@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>FAiR AR ART</title>
+    <title>FAir AR</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
@@ -58,9 +58,58 @@
         margin: 0 auto 20px;
       }
 
+      .loading-spinner.hidden {
+        display: none;
+      }
+
       @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
+      }
+
+      /* Green Checkmark */
+      .checkmark-container {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 20px;
+        display: none;
+      }
+
+      .checkmark-container.show {
+        display: block;
+        animation: checkmarkAppear 0.5s ease-out;
+      }
+
+      .checkmark {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: #4CAF50;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .checkmark::after {
+        content: '✓';
+        color: white;
+        font-size: 30px;
+        font-weight: bold;
+      }
+
+      @keyframes checkmarkAppear {
+        0% {
+          transform: scale(0);
+          opacity: 0;
+        }
+        50% {
+          transform: scale(1.2);
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
       }
 
       .loading-text {
@@ -68,6 +117,12 @@
         color: #666;
         text-align: center;
         animation: pulse 2s ease-in-out infinite;
+      }
+
+      .loading-text.ready {
+        animation: none;
+        color: #4CAF50;
+        font-weight: bold;
       }
 
       @keyframes pulse {
@@ -88,17 +143,24 @@
         transition: all 0.3s ease;
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
         display: none;
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
       }
 
       #start-button:hover {
-        background-color: #555;
-        transform: translateY(-2px);
-        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.3);
+        background-color: #4CAF50;
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(76, 175, 80, 0.4);
       }
 
       #start-button:active {
-        transform: translateY(0);
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        transform: translateY(-1px);
+        box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
+      }
+
+      #start-button:focus {
+        outline: none;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
       }
 
       #start-button.show {
@@ -205,8 +267,11 @@
       </div>
 
       <div class="loading-container">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">Loading AR Experience...</div>
+        <div class="loading-spinner" id="loading-spinner"></div>
+        <div class="checkmark-container" id="checkmark-container">
+          <div class="checkmark"></div>
+        </div>
+        <div class="loading-text" id="loading-text">Loading AR Experience...</div>
       </div>
 
       <button id="start-button" onclick="startARExperience()">Start AR</button>
@@ -226,7 +291,7 @@
     ></video>
 
     <a-scene
-      mindar-image="imageTargetSrc: https://fairarweb.github.io/project/targets.mind;
+      mindar-image="imageTargetSrc: https://FAiRarWeb.github.io/project/targets.mind;
                     uiScanning: no;
                     filterMinCF: 0.0001;
                     filterBeta: 0.001;
@@ -299,15 +364,50 @@
       const startupScreen = document.getElementById("startup-screen");
       const startButton = document.getElementById("start-button");
       const arScene = document.getElementById("ar-scene");
+      const loadingSpinner = document.getElementById("loading-spinner");
+      const checkmarkContainer = document.getElementById("checkmark-container");
+      const loadingText = document.getElementById("loading-text");
 
       let currentTarget = null;
       let isARStarted = false;
+      let isARReady = false;
 
       // Startup screen functionality
-      function showStartButton() {
+      function checkARReady() {
+        // Check if MindAR is ready
+        if (window.MINDAR && arScene) {
+          // Listen for AR system ready event
+          arScene.addEventListener('loaded', () => {
+            setTimeout(() => {
+              showARReady();
+            }, 500);
+          });
+
+          // Fallback timer in case event doesn't fire
+          setTimeout(() => {
+            if (!isARReady) {
+              showARReady();
+            }
+          }, 3000);
+        } else {
+          // Keep checking until MindAR is loaded
+          setTimeout(checkARReady, 500);
+        }
+      }
+
+      function showARReady() {
+        isARReady = true;
+        // Hide loading spinner
+        loadingSpinner.classList.add("hidden");
+        // Show checkmark
+        checkmarkContainer.classList.add("show");
+        // Update text
+        loadingText.textContent = "AR Ready!";
+        loadingText.classList.add("ready");
+        // Show start button
         setTimeout(() => {
           startButton.classList.add("show");
-        }, 2000); // Show start button after 2 seconds of loading
+        }, 500);
       }
 
       function startARExperience() {
@@ -319,7 +419,8 @@
 
       // Initialize the startup sequence
       document.addEventListener("DOMContentLoaded", () => {
-        showStartButton();
+        // Start checking for AR readiness
+        checkARReady();
       });
 
       function hideAllTexts() {
