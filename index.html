@@ -11,6 +11,112 @@
         display: none !important;
       }
 
+      /* Startup Screen Styles */
+      #startup-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        font-family: 'Arial', sans-serif;
+      }
+
+      #startup-screen.hidden {
+        display: none;
+      }
+
+      .logo-container {
+        margin-bottom: 50px;
+      }
+
+      .logo-text {
+        font-size: 48px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      /* Artivive-style Loading Animation */
+      .loading-container {
+        margin-bottom: 50px;
+      }
+
+      .loading-spinner {
+        width: 60px;
+        height: 60px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #333;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .loading-text {
+        font-size: 18px;
+        color: #666;
+        text-align: center;
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 0.6; }
+        50% { opacity: 1; }
+      }
+
+      /* Start Button */
+      #start-button {
+        padding: 20px 60px;
+        font-size: 24px;
+        font-weight: bold;
+        background-color: #333;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        display: none;
+      }
+
+      #start-button:hover {
+        background-color: #555;
+        transform: translateY(-2px);
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.3);
+      }
+
+      #start-button:active {
+        transform: translateY(0);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      #start-button.show {
+        display: block;
+        animation: fadeInUp 0.5s ease-out;
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
       #toggle-button {
         position: fixed;
         bottom: 100px;
@@ -92,12 +198,26 @@
   </head>
 
   <body style="margin: 0; overflow: hidden">
+    <!-- Startup Screen -->
+    <div id="startup-screen">
+      <div class="logo-container">
+        <div class="logo-text">AR Experience</div>
+      </div>
+
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading AR Experience...</div>
+      </div>
+
+      <button id="start-button" onclick="startARExperience()">Start AR</button>
+    </div>
+
     <button id="toggle-button" onclick="toggleInfo()">Info</button>
     <a href="#" class="ar-link" id="websiteLink">Visit Website</a>
 
     <video
       id="ar-video"
-      src="https://FAiRarWeb.github.io/project/WhatsApp%20Video%202025-05-20%20at%2010.08.10_53f8c34b.mp4"
+      src="https://fairarweb.github.io/project/WhatsApp%20Video%202025-05-20%20at%2010.08.10_53f8c34b.mp4"
       loop
       autoplay
       muted
@@ -106,15 +226,17 @@
     ></video>
 
     <a-scene
-      mindar-image="imageTargetSrc: https://FAiRarWeb.github.io/project/targets.mind; 
-                    uiScanning: no; 
-                    filterMinCF: 0.0001; 
-                    filterBeta: 0.001; 
-                    missTolerance: 5; 
+      mindar-image="imageTargetSrc: https://fairarweb.github.io/project/targets.mind;
+                    uiScanning: no;
+                    filterMinCF: 0.0001;
+                    filterBeta: 0.001;
+                    missTolerance: 5;
                     warmupTolerance: 3;"
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false"
       renderer="precision: high; antialias: true;"
+      style="display: none;"
+      id="ar-scene"
     >
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
@@ -126,7 +248,7 @@
         <a-entity class="video-container" position="0 0 0">
           <a-video
             id="video-plane"
-            src="https://FAiRarWeb.github.io/project/WhatsApp%20Video%202025-05-20%20at%2010.08.10_53f8c34b.mp4"
+            src="https://fairarweb.github.io/project/WhatsApp%20Video%202025-05-20%20at%2010.08.10_53f8c34b.mp4"
             position="0 0 0"
             width="1"
             height="0.45"
@@ -150,7 +272,7 @@
         </a-entity>
         <a-entity class="video-container" position="0 0 0">
           <a-video
-            src="https://FAiRarWeb.github.io/project/WhatsApp%20Video%202025-05-20%20at%2010.08.10_53f8c34b.mp4"
+            src="https://fairarweb.github.io/project/WhatsApp%20Video%202025-05-20%20at%2010.08.10_53f8c34b.mp4"
             position="0 0.05 0"
             width="1"
             height="0.45"
@@ -174,8 +296,31 @@
       const video = document.getElementById("ar-video");
       const videoPlane = document.getElementById("video-plane");
       const targetTexts = document.querySelectorAll(".target-text");
+      const startupScreen = document.getElementById("startup-screen");
+      const startButton = document.getElementById("start-button");
+      const arScene = document.getElementById("ar-scene");
 
       let currentTarget = null;
+      let isARStarted = false;
+
+      // Startup screen functionality
+      function showStartButton() {
+        setTimeout(() => {
+          startButton.classList.add("show");
+        }, 2000); // Show start button after 2 seconds of loading
+      }
+
+      function startARExperience() {
+        startupScreen.classList.add("hidden");
+        arScene.style.display = "block";
+        isARStarted = true;
+        initializeCamera();
+      }
+
+      // Initialize the startup sequence
+      document.addEventListener("DOMContentLoaded", () => {
+        showStartButton();
+      });
 
       function hideAllTexts() {
         targetTexts.forEach(text => {
@@ -224,7 +369,7 @@
         });
       });
 
-      document.addEventListener("DOMContentLoaded", async () => {
+      async function initializeCamera() {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } },
@@ -235,7 +380,7 @@
         } catch (err) {
           console.warn("Camera access failed:", err);
         }
-      });
+      }
     </script>
   </body>
 </html>
