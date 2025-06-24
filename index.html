@@ -226,11 +226,9 @@
         }
       }
 
-      #toggle-button {
+      #animate-button, #info-button {
         position: fixed;
         bottom: clamp(80px, 15vh, 120px);
-        left: 50%;
-        transform: translateX(-50%);
         z-index: 1000;
         padding: clamp(12px, 3vw, 20px) clamp(30px, 8vw, 50px);
         font-size: clamp(14px, 3.5vw, 16px);
@@ -247,11 +245,21 @@
         min-width: 80px;
       }
 
-      #toggle-button:hover {
+      #animate-button {
+        left: calc(50% - 90px);
+        transform: translateX(-50%);
+      }
+
+      #info-button {
+        left: calc(50% + 90px);
+        transform: translateX(-50%);
+      }
+
+      #animate-button:hover, #info-button:hover {
         background-color: #f0f0f0;
       }
 
-      #toggle-button:active {
+      #animate-button:active, #info-button:active {
         background-color: #cad5d9;
         color: white;
         transform: translateX(-50%) scale(0.96);
@@ -363,10 +371,18 @@
           font-size: clamp(24px, 12vw, 36px);
         }
 
-        #toggle-button {
+        #animate-button, #info-button {
           bottom: clamp(70px, 12vh, 100px);
           padding: clamp(10px, 3vw, 16px) clamp(25px, 8vw, 40px);
           font-size: clamp(12px, 4vw, 14px);
+        }
+        
+        #animate-button {
+          left: calc(50% - 80px);
+        }
+        
+        #info-button {
+          left: calc(50% + 80px);
         }
 
         .ar-link {
@@ -433,7 +449,8 @@
       <button id="start-button" onclick="startARExperience()">Start AR</button>
     </div>
 
-    <button id="toggle-button" onclick="toggleInfo()">Info</button>
+    <button id="animate-button" onclick="toggleAnimation()">Animate Me</button>
+    <button id="info-button" onclick="toggleInfo()">Info</button>
     <a href="#" class="ar-link" id="websiteLink">Visit Website</a>
 
     <video
@@ -513,6 +530,7 @@
 
     <script>
       let isInfoShown = false;
+      let isAnimating = false;
       const websiteLink = document.getElementById("websiteLink");
       const video = document.getElementById("ar-video");
       const videoPlane = document.getElementById("video-plane");
@@ -593,23 +611,50 @@
         });
       }
 
+      function toggleAnimation() {
+        if (!currentTarget) return;
+        
+        isAnimating = !isAnimating;
+        
+        if (isAnimating) {
+          // Start animation - play video
+          video.play();
+          document.querySelectorAll("a-video").forEach(v => v.setAttribute("visible", true));
+          document.getElementById("animate-button").textContent = "Stop Animation";
+        } else {
+          // Stop animation - pause video
+          video.pause();
+          document.getElementById("animate-button").textContent = "Animate Me";
+        }
+      }
+      
       function toggleInfo() {
         if (!currentTarget) return;
-
+        
         isInfoShown = !isInfoShown;
-
+        
         if (isInfoShown) {
+          // Pause video when showing info
           video.pause();
+          isAnimating = false;
+          document.getElementById("animate-button").textContent = "Animate Me";
           document.querySelectorAll("a-video").forEach(v => v.setAttribute("visible", false));
+          
+          // Show website link
           websiteLink.href = "https://www.youtube.com/";
-          websiteLink.textContent = "Visit YouTube";
+          websiteLink.textContent = "Visit Website";
           websiteLink.style.display = "block";
+          websiteLink.style.top = "20%"; // Position at top of target
+          
+          // Show text
           document.querySelector(`#${currentTarget} .target-text`).setAttribute("opacity", "1");
+          document.getElementById("info-button").textContent = "Hide Info";
         } else {
-          video.play();
+          // Hide info but don't automatically start animation
           document.querySelectorAll("a-video").forEach(v => v.setAttribute("visible", true));
           websiteLink.style.display = "none";
           hideAllTexts();
+          document.getElementById("info-button").textContent = "Info";
         }
       }
 
@@ -618,14 +663,24 @@
         const target = document.getElementById(id);
         target.addEventListener("targetFound", () => {
           currentTarget = id;
-          if (!isInfoShown) {
+          
+          // Don't automatically play video when target is found
+          // Only show animation if animation is toggled on
+          if (isAnimating) {
             video.play();
-            document.querySelector(`#${id} .target-text`).setAttribute("opacity", "0");
           } else {
+            video.pause();
+          }
+          
+          // Show info if info is toggled on
+          if (isInfoShown) {
             document.querySelector(`#${id} .target-text`).setAttribute("opacity", "1");
+            websiteLink.style.display = "block";
+          } else {
+            document.querySelector(`#${id} .target-text`).setAttribute("opacity", "0");
           }
         });
-
+        
         target.addEventListener("targetLost", () => {
           currentTarget = null;
           video.pause();
