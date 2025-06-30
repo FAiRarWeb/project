@@ -273,7 +273,7 @@
             console.log("Animate button pressed, isAnimatePressed:", isAnimatePressed);
           });
 
-          // Info button - closes video and shows info
+          // Info button - controls "i" button visibility
           infoButton.addEventListener("click", () => {
             // Add animation class
             infoButton.classList.add("animate");
@@ -283,44 +283,15 @@
               infoButton.classList.remove("animate");
             }, 600);
 
-            // Close video automatically
-            isAnimatePressed = false;
-            videoEl.pause();
-            videoPlane.setAttribute("visible", false);
+            // Toggle AR info button visibility and HTML button for clicking
+            const isHidden = !infoButtonAR.getAttribute("visible");
+            infoButtonAR.setAttribute("visible", isHidden);
+            googleButton.style.display = isHidden ? "block" : "none";
 
-            // Show info button
-            infoButtonAR.setAttribute("visible", true);
-            googleButton.style.display = "block";
-
-            console.log("Info button pressed - video closed, info shown");
+            console.log("Info button pressed, AR button visible:", isHidden);
           });
 
 
-          this.tick = () => {
-            if (googleButton.style.display !== "block" || !isTargetFound) return;
-
-            // Position invisible HTML button over the AR button for clicking
-            const videoWorldPosition = new THREE.Vector3();
-            videoPlane.object3D.getWorldPosition(videoWorldPosition);
-
-            const vector = videoWorldPosition.clone();
-            vector.project(camera.children[0]);
-
-            const widthHalf = window.innerWidth / 2;
-            const heightHalf = window.innerHeight / 2;
-            const x = (vector.x * widthHalf) + widthHalf;
-            const y = -(vector.y * heightHalf) + heightHalf;
-
-            const distance = camera.position.distanceTo(videoWorldPosition);
-            const scaleFactor = Math.max(0.5, Math.min(1.5, 1 / Math.max(0.1, distance)));
-
-            googleButton.style.left = `${x}px`;
-            googleButton.style.top = `${y}px`;
-
-            // Apply rotation based on current orientation along with scaling
-            const rotation = deviceOrientation === 'landscape' ? 'rotate(90deg)' : 'rotate(0deg)';
-            googleButton.style.transform = `translate(-50%, -50%) scale(${scaleFactor}) ${rotation}`;
-          };
         },
       });
     </script>
