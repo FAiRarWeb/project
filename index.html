@@ -273,7 +273,7 @@
             console.log("Animate button pressed, isAnimatePressed:", isAnimatePressed);
           });
 
-          // Info button - controls "i" button visibility
+          // Info button - closes video and shows info
           infoButton.addEventListener("click", () => {
             // Add animation class
             infoButton.classList.add("animate");
@@ -283,12 +283,16 @@
               infoButton.classList.remove("animate");
             }, 600);
 
-            // Toggle AR info button visibility and HTML button for clicking
-            const isHidden = !infoButtonAR.getAttribute("visible");
-            infoButtonAR.setAttribute("visible", isHidden);
-            googleButton.style.display = isHidden ? "block" : "none";
+            // Close video automatically
+            isAnimatePressed = false;
+            videoEl.pause();
+            videoPlane.setAttribute("visible", false);
 
-            console.log("Info button pressed, AR button visible:", isHidden);
+            // Show info button
+            infoButtonAR.setAttribute("visible", true);
+            googleButton.style.display = "block";
+
+            console.log("Info button pressed - video closed, info shown");
           });
 
 
