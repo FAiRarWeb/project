@@ -126,7 +126,7 @@
       </a-entity>
     </a-scene>
 
-    <button id="toggleButton" class="control-button">Animate Me</button>
+    <button id="toggleButton" class="control-button">Info</button>
     <button id="googleButton" class="google-button" onclick="window.open('https://www.google.com', '_blank')">i</button>
 
     <script>
@@ -186,7 +186,6 @@
               console.log("Both conditions met - playing video");
               videoPlane.setAttribute("visible", true);
               videoEl.play().catch(e => console.warn("Autoplay blocked:", e));
-              toggleButton.textContent = "Info";
             } else {
               videoPlane.setAttribute("visible", false);
               videoEl.pause();
@@ -215,7 +214,6 @@
 
             // Reset button state when target is lost
             isButtonPressed = false;
-            toggleButton.textContent = "Animate Me";
           });
 
           toggleButton.addEventListener("click", () => {
@@ -232,7 +230,7 @@
               isButtonPressed = true;
               checkAndPlayVideo();
 
-              // Show info button if video is playing
+              // Show info button if target is found
               if (isTargetFound) {
                 googleButton.style.display = "block";
               }
