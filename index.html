@@ -93,6 +93,7 @@
         display: none;
         font-size: 16px;
         font-weight: bold;
+        z-index: 5;
       }
 
       .google-button:hover {
@@ -124,7 +125,7 @@
       <a-entity mindar-image-target="targetIndex: 0" videohandler>
         <a-video
           src="#video1"
-          position="0 0 0"
+          position="0 0 0.01"
           width="1"
           height="0.45"
           autoplay="false"
@@ -267,11 +268,11 @@
           this.tick = () => {
             if (googleButton.style.display !== "block" || !isTargetFound) return;
 
-            // Position button on the image target (this.el) instead of video
-            const targetWorldPosition = new THREE.Vector3();
-            this.el.object3D.getWorldPosition(targetWorldPosition);
+            // Position button on the video plane (behind the video)
+            const videoWorldPosition = new THREE.Vector3();
+            videoPlane.object3D.getWorldPosition(videoWorldPosition);
 
-            const vector = targetWorldPosition.clone();
+            const vector = videoWorldPosition.clone();
             vector.project(camera.children[0]);
 
             const widthHalf = window.innerWidth / 2;
@@ -279,7 +280,7 @@
             const x = (vector.x * widthHalf) + widthHalf;
             const y = -(vector.y * heightHalf) + heightHalf;
 
-            const distance = camera.position.distanceTo(targetWorldPosition);
+            const distance = camera.position.distanceTo(videoWorldPosition);
             const scaleFactor = Math.max(0.5, Math.min(1.5, 1 / Math.max(0.1, distance)));
 
             googleButton.style.left = `${x}px`;
