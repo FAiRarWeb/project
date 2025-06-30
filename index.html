@@ -46,14 +46,22 @@
       }
 
       .control-button {
-        top: 10px;
-        right: 10px;
         background-color: rgba(255, 255, 255, 0.7);
         border-radius: 5px;
         padding: 8px 12px;
         display: none;
         border: none;
         font-size: 14px;
+      }
+
+      .animate-button {
+        top: 10px;
+        right: 10px;
+      }
+
+      .info-button {
+        top: 10px;
+        right: 120px;
       }
 
       .control-button:hover {
@@ -126,7 +134,8 @@
       </a-entity>
     </a-scene>
 
-    <button id="toggleButton" class="control-button">Animate Me</button>
+    <button id="animateButton" class="control-button animate-button">Animate Me</button>
+    <button id="infoButton" class="control-button info-button">Info</button>
     <button id="googleButton" class="google-button" onclick="window.open('https://www.google.com', '_blank')">i</button>
 
     <script>
@@ -134,13 +143,14 @@
         init: function () {
           const videoEl = document.querySelector("#video1");
           const videoPlane = this.el.querySelector("a-video");
-          const toggleButton = document.querySelector("#toggleButton");
+          const animateButton = document.querySelector("#animateButton");
+          const infoButton = document.querySelector("#infoButton");
           const googleButton = document.querySelector("#googleButton");
           const camera = document.querySelector("a-camera").object3D;
 
           // Track states
           let deviceOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
-          let isButtonPressed = false;
+          let isAnimatePressed = false;
           let isTargetFound = false;
           
           // Device orientation detection
@@ -164,16 +174,18 @@
             if (orientation === 'landscape') {
               // Keep video in original orientation (no rotation)
               videoPlane.setAttribute("rotation", "0 0 0");
-              
+
               // Only rotate UI buttons
-              toggleButton.style.transform = "rotate(90deg)";
+              animateButton.style.transform = "rotate(90deg)";
+              infoButton.style.transform = "rotate(90deg)";
               googleButton.style.transform = "rotate(90deg)";
             } else {
               // Keep original rotation in portrait mode
               videoPlane.setAttribute("rotation", "0 0 0");
-              
+
               // Reset UI buttons rotation
-              toggleButton.style.transform = "rotate(0deg)";
+              animateButton.style.transform = "rotate(0deg)";
+              infoButton.style.transform = "rotate(0deg)";
               googleButton.style.transform = "translate(-50%, -50%) scale(1)";
             }
           };
@@ -182,7 +194,7 @@
           updateLayout(deviceOrientation);
           
           const checkAndPlayVideo = () => {
-            if (isButtonPressed && isTargetFound) {
+            if (isAnimatePressed && isTargetFound) {
               console.log("Both conditions met - playing video");
               videoPlane.setAttribute("visible", true);
               videoEl.play().catch(e => console.warn("Autoplay blocked:", e));
@@ -195,7 +207,8 @@
           this.el.addEventListener("targetFound", () => {
             console.log("Target found");
             isTargetFound = true;
-            toggleButton.style.display = "block";
+            animateButton.style.display = "block";
+            infoButton.style.display = "block";
 
             // Apply current orientation when target is found
             updateLayout(deviceOrientation);
@@ -209,36 +222,46 @@
             isTargetFound = false;
             videoEl.pause();
             videoPlane.setAttribute("visible", false);
-            toggleButton.style.display = "none";
+            animateButton.style.display = "none";
+            infoButton.style.display = "none";
             googleButton.style.display = "none";
 
             // Reset button state when target is lost
-            isButtonPressed = false;
+            isAnimatePressed = false;
           });
 
-          toggleButton.addEventListener("click", () => {
+          // Animate Me button - controls video playback
+          animateButton.addEventListener("click", () => {
             // Add animation class
-            toggleButton.classList.add("animate");
+            animateButton.classList.add("animate");
 
             // Remove animation class after animation completes
             setTimeout(() => {
-              toggleButton.classList.remove("animate");
+              animateButton.classList.remove("animate");
             }, 600);
 
-            if (!isButtonPressed) {
-              // First press - activate button
-              isButtonPressed = true;
-              checkAndPlayVideo();
+            // Toggle video playback
+            isAnimatePressed = !isAnimatePressed;
+            checkAndPlayVideo();
 
-              // Show info button if target is found
-              if (isTargetFound) {
-                googleButton.style.display = "block";
-              }
-            } else {
-              // Toggle info button visibility
-              const isHidden = googleButton.style.display === "none" || googleButton.style.display === "";
-              googleButton.style.display = isHidden ? "block" : "none";
-            }
+            console.log("Animate button pressed, isAnimatePressed:", isAnimatePressed);
+          });
+
+          // Info button - controls "i" button visibility
+          infoButton.addEventListener("click", () => {
+            // Add animation class
+            infoButton.classList.add("animate");
+
+            // Remove animation class after animation completes
+            setTimeout(() => {
+              infoButton.classList.remove("animate");
+            }, 600);
+
+            // Toggle info button visibility
+            const isHidden = googleButton.style.display === "none" || googleButton.style.display === "";
+            googleButton.style.display = isHidden ? "block" : "none";
+
+            console.log("Info button pressed, googleButton visible:", !isHidden);
           });
 
           this.tick = () => {
