@@ -42,6 +42,7 @@
         font-weight: bold;
         cursor: pointer;
         transform-origin: center;
+        transition: all 0.3s ease;
       }
 
       .control-button {
@@ -51,15 +52,44 @@
         border-radius: 5px;
         padding: 8px 12px;
         display: none;
+        border: none;
+        font-size: 14px;
+      }
+
+      .control-button:hover {
+        background-color: rgba(255, 255, 255, 0.9);
+        transform: scale(1.05);
+      }
+
+      .control-button:active {
+        transform: scale(0.95);
+      }
+
+      .control-button.animate {
+        animation: buttonPulse 0.6s ease-in-out;
+      }
+
+      @keyframes buttonPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.2); background-color: rgba(76, 175, 80, 0.8); }
+        100% { transform: scale(1); }
       }
 
       .google-button {
         background-color: #4285F4;
         color: white;
         border: none;
-        border-radius: 4px;
-        padding: 10px 15px;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
         display: none;
+        font-size: 16px;
+        font-weight: bold;
+      }
+
+      .google-button:hover {
+        background-color: #3367D6;
+        transform: translate(-50%, -50%) scale(1.1);
       }
     </style>
   </head>
@@ -96,7 +126,7 @@
       </a-entity>
     </a-scene>
 
-    <button id="toggleButton" class="control-button">Show Button</button>
+    <button id="toggleButton" class="control-button">Animate Me</button>
     <button id="googleButton" class="google-button" onclick="window.open('https://www.google.com', '_blank')">i</button>
 
     <script>
@@ -107,9 +137,11 @@
           const toggleButton = document.querySelector("#toggleButton");
           const googleButton = document.querySelector("#googleButton");
           const camera = document.querySelector("a-camera").object3D;
-          
-          // Track device orientation
+
+          // Track states
           let deviceOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+          let isButtonPressed = false;
+          let isTargetFound = false;
           
           // Device orientation detection
           window.addEventListener("deviceorientation", (event) => {
@@ -149,37 +181,76 @@
           // Initialize layout based on current orientation
           updateLayout(deviceOrientation);
           
+          const checkAndPlayVideo = () => {
+            if (isButtonPressed && isTargetFound) {
+              console.log("Both conditions met - playing video");
+              videoPlane.setAttribute("visible", true);
+              videoEl.play().catch(e => console.warn("Autoplay blocked:", e));
+              toggleButton.textContent = "Info";
+            } else {
+              videoPlane.setAttribute("visible", false);
+              videoEl.pause();
+            }
+          };
+
           this.el.addEventListener("targetFound", () => {
             console.log("Target found");
-            videoPlane.setAttribute("visible", true);
-            videoEl.play().catch(e => console.warn("Autoplay blocked:", e));
+            isTargetFound = true;
             toggleButton.style.display = "block";
-            
+
             // Apply current orientation when target is found
             updateLayout(deviceOrientation);
+
+            // Check if we should play video
+            checkAndPlayVideo();
           });
 
           this.el.addEventListener("targetLost", () => {
             console.log("Target lost");
+            isTargetFound = false;
             videoEl.pause();
             videoPlane.setAttribute("visible", false);
             toggleButton.style.display = "none";
             googleButton.style.display = "none";
+
+            // Reset button state when target is lost
+            isButtonPressed = false;
+            toggleButton.textContent = "Animate Me";
           });
 
           toggleButton.addEventListener("click", () => {
-            const isHidden = googleButton.style.display === "none" || googleButton.style.display === "";
-            googleButton.style.display = isHidden ? "block" : "none";
-            toggleButton.textContent = isHidden ? "Hide Button" : "Show Button";
+            // Add animation class
+            toggleButton.classList.add("animate");
+
+            // Remove animation class after animation completes
+            setTimeout(() => {
+              toggleButton.classList.remove("animate");
+            }, 600);
+
+            if (!isButtonPressed) {
+              // First press - activate button
+              isButtonPressed = true;
+              checkAndPlayVideo();
+
+              // Show info button if video is playing
+              if (isTargetFound) {
+                googleButton.style.display = "block";
+              }
+            } else {
+              // Toggle info button visibility
+              const isHidden = googleButton.style.display === "none" || googleButton.style.display === "";
+              googleButton.style.display = isHidden ? "block" : "none";
+            }
           });
 
           this.tick = () => {
-            if (googleButton.style.display !== "block" || !videoPlane.getAttribute("visible")) return;
+            if (googleButton.style.display !== "block" || !isTargetFound) return;
 
-            const videoWorldPosition = new THREE.Vector3();
-            videoPlane.object3D.getWorldPosition(videoWorldPosition);
+            // Position button on the image target (this.el) instead of video
+            const targetWorldPosition = new THREE.Vector3();
+            this.el.object3D.getWorldPosition(targetWorldPosition);
 
-            const vector = videoWorldPosition.clone();
+            const vector = targetWorldPosition.clone();
             vector.project(camera.children[0]);
 
             const widthHalf = window.innerWidth / 2;
@@ -187,12 +258,12 @@
             const x = (vector.x * widthHalf) + widthHalf;
             const y = -(vector.y * heightHalf) + heightHalf;
 
-            const distance = camera.position.distanceTo(videoWorldPosition);
+            const distance = camera.position.distanceTo(targetWorldPosition);
             const scaleFactor = Math.max(0.5, Math.min(1.5, 1 / Math.max(0.1, distance)));
 
             googleButton.style.left = `${x}px`;
             googleButton.style.top = `${y}px`;
-            
+
             // Apply rotation based on current orientation along with scaling
             const rotation = deviceOrientation === 'landscape' ? 'rotate(90deg)' : 'rotate(0deg)';
             googleButton.style.transform = `translate(-50%, -50%) scale(${scaleFactor}) ${rotation}`;
