@@ -243,6 +243,12 @@
 
             // Toggle video playback
             isAnimatePressed = !isAnimatePressed;
+            
+            // Hide the "i" button when video is played
+            if (isAnimatePressed) {
+              googleButton.style.display = "none";
+            }
+            
             checkAndPlayVideo();
 
             console.log("Animate button pressed, isAnimatePressed:", isAnimatePressed);
