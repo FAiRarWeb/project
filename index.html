@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html>More actions
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -42,24 +42,66 @@
         font-weight: bold;
         cursor: pointer;
         transform-origin: center;
+        transition: all 0.3s ease;
       }
 
       .control-button {
-        top: 10px;
-        right: 10px;
         background-color: rgba(255, 255, 255, 0.7);
         border-radius: 5px;
         padding: 8px 12px;
         display: none;
+        border: none;
+        font-size: 14px;
+      }
+
+      .animate-button {
+        top: 10px;
+        right: 10px;
+      }
+
+      .info-button {
+        top: 10px;
+        right: 120px;
+      }
+
+      .control-button:hover {
+        background-color: rgba(255, 255, 255, 0.9);
+        transform: scale(1.05);
+      }
+
+      .control-button:active {
+        transform: scale(0.95);
+      }
+
+      .control-button.animate {
+        animation: buttonPulse 0.6s ease-in-out;
+      }
+
+      @keyframes buttonPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.2); background-color: rgba(76, 175, 80, 0.8); }
+        100% { transform: scale(1); }
       }
 
       .google-button {
         background-color: #4285F4;
         color: white;
         border: none;
-        border-radius: 4px;
-        padding: 10px 15px;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
         display: none;
+        font-size: 16px;
+        font-weight: bold;
+        z-index: 1;
+        opacity: 0;
+        pointer-events: auto;
+        position: absolute;
+      }
+
+      .google-button:hover {
+        background-color: #3367D6;
+        transform: translate(-50%, -50%) scale(1.1);
       }
     </style>
   </head>
@@ -86,17 +128,38 @@
       <a-entity mindar-image-target="targetIndex: 0" videohandler>
         <a-video
           src="#video1"
-          position="0 0 0"
+          position="0 0 0.01"
           width="1"
           height="0.45"
           autoplay="false"
           loop="true"
           visible="false"
         ></a-video>
+
+        <!-- Info button as A-Frame entity behind the video -->
+        <a-plane
+          id="infoButtonAR"
+          position="0 0 -0.02"
+          width="0.15"
+          height="0.15"
+          color="#4285F4"
+          visible="false"
+          material="transparent: true; opacity: 0.8"
+        >
+          <a-text
+            value="i"
+            position="0 0 0.001"
+            align="center"
+            color="white"
+            font="kelsonsans"
+            width="8"
+          ></a-text>
+        </a-plane>
       </a-entity>
     </a-scene>
 
-    <button id="toggleButton" class="control-button">Show Button</button>
+    <button id="animateButton" class="control-button animate-button">Animate Me</button>
+    <button id="infoButton" class="control-button info-button">Info</button>
     <button id="googleButton" class="google-button" onclick="window.open('https://www.google.com', '_blank')">i</button>
 
     <script>
@@ -104,31 +167,35 @@
         init: function () {
           const videoEl = document.querySelector("#video1");
           const videoPlane = this.el.querySelector("a-video");
-          const toggleButton = document.querySelector("#toggleButton");
+          const animateButton = document.querySelector("#animateButton");
+          const infoButton = document.querySelector("#infoButton");
           const googleButton = document.querySelector("#googleButton");
+          const infoButtonAR = this.el.querySelector("#infoButtonAR");
           const camera = document.querySelector("a-camera").object3D;
 
-          // Track device orientation
+          // Track states
           let deviceOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
-          
+          let isAnimatePressed = false;
+          let isTargetFound = false;
+
           // Device orientation detection
           window.addEventListener("deviceorientation", (event) => {
             // Get gamma (rotation around front-to-back axis)
             const gamma = Math.abs(event.gamma);
-            
+
             // Determine orientation based on gamma angle
             const newOrientation = (gamma > 45 && gamma < 135) ? 'landscape' : 'portrait';
-            
+
             // Only update if orientation changed
             if (newOrientation !== deviceOrientation) {
               deviceOrientation = newOrientation;
               updateLayout(deviceOrientation);
             }
           }, true);
-          
+
           const updateLayout = (orientation) => {
             console.log("Device orientation:", orientation);
-            
+
             if (orientation === 'landscape') {
               // Keep video in original orientation (no rotation)
               videoPlane.setAttribute("rotation", "0 0 0");
@@ -147,10 +214,10 @@
               googleButton.style.transform = "translate(-50%, -50%) scale(1)";
             }
           };
-          
+
           // Initialize layout based on current orientation
           updateLayout(deviceOrientation);
-          
+
           const checkAndPlayVideo = () => {
             if (isAnimatePressed && isTargetFound) {
               console.log("Both conditions met - playing video");
@@ -207,6 +274,7 @@
           });
 
           // Info button - controls "i" button visibility
+          // Info button - closes video and shows info
           infoButton.addEventListener("click", () => {
             // Add animation class
             infoButton.classList.add("animate");
@@ -220,11 +288,45 @@
             const isHidden = !infoButtonAR.getAttribute("visible");
             infoButtonAR.setAttribute("visible", isHidden);
             googleButton.style.display = isHidden ? "block" : "none";
+            // Close video automatically
+            isAnimatePressed = false;
+            videoEl.pause();
+            videoPlane.setAttribute("visible", false);
+
+            // Show info button
+            infoButtonAR.setAttribute("visible", true);
+            googleButton.style.display = "block";
 
             console.log("Info button pressed, AR button visible:", isHidden);
+            console.log("Info button pressed - video closed, info shown");
           });
 
 
+          this.tick = () => {
+            if (googleButton.style.display !== "block" || !isTargetFound) return;
+
+            // Position invisible HTML button over the AR button for clicking
+            const videoWorldPosition = new THREE.Vector3();
+            videoPlane.object3D.getWorldPosition(videoWorldPosition);
+
+            const vector = videoWorldPosition.clone();
+            vector.project(camera.children[0]);
+
+            const widthHalf = window.innerWidth / 2;
+            const heightHalf = window.innerHeight / 2;
+            const x = (vector.x * widthHalf) + widthHalf;
+            const y = -(vector.y * heightHalf) + heightHalf;
+
+            const distance = camera.position.distanceTo(videoWorldPosition);
+            const scaleFactor = Math.max(0.5, Math.min(1.5, 1 / Math.max(0.1, distance)));
+
+            googleButton.style.left = `${x}px`;
+            googleButton.style.top = `${y}px`;
+
+            // Apply rotation based on current orientation along with scaling
+            const rotation = deviceOrientation === 'landscape' ? 'rotate(90deg)' : 'rotate(0deg)';
+            googleButton.style.transform = `translate(-50%, -50%) scale(${scaleFactor}) ${rotation}`;
+          };
         },
       });
     </script>
