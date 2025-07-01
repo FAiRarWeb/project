@@ -117,7 +117,7 @@
         
         .info-button {
           bottom: 20px;
-          right: 180px; /* Position to the left of animate button in landscape */
+          right: 100px; /* Reduced from 180px to be closer in landscape */
         }
       }
 
@@ -214,10 +214,13 @@
               infoButton.style.transform = "rotate(90deg)";
               
               // Update button positions for landscape
-              animateButton.style.bottom = "20px";
-              animateButton.style.right = "20px";
-              infoButton.style.bottom = "20px";
-              infoButton.style.right = "180px"; // Position to the left in landscape
+              animateButton.style.bottom = "50%"; // Center vertically
+              animateButton.style.right = "20px"; // Keep at right edge
+              animateButton.style.transform = "translateY(50%) rotate(90deg)"; // Adjust for center alignment
+              
+              infoButton.style.bottom = "50%"; // Center vertically
+              infoButton.style.right = "100px"; // Position to the left of animate button
+              infoButton.style.transform = "translateY(50%) rotate(90deg)"; // Adjust for center alignment
               
             } else {
               // Keep original rotation in portrait mode
