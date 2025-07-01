@@ -79,7 +79,7 @@
       }
 
       .control-button.animate {
-        animation: buttonPulse 0.8s ease-in-out;
+        animation: buttonPulse 0.4s ease-in-out; /* Reduced from 0.8s to 0.4s */
       }
 
       @keyframes buttonPulse {
@@ -258,7 +258,7 @@
             // Remove animation class after animation completes
             setTimeout(() => {
               animateButton.classList.remove("animate");
-            }, 600);
+            }, 400); // Reduced from 600ms to 400ms to match the CSS animation duration
 
             // Toggle video playback
             isAnimatePressed = !isAnimatePressed;
@@ -281,7 +281,7 @@
             // Remove animation class after animation completes
             setTimeout(() => {
               infoButton.classList.remove("animate");
-            }, 600);
+            }, 400); // Reduced from 600ms to 400ms
 
             // Toggle info button visibility
             const isHidden = googleButton.style.display === "none" || googleButton.style.display === "";
