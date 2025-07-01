@@ -60,8 +60,10 @@
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         text-transform: uppercase;
         letter-spacing: 1px;
-        transform-origin: center;
+        transform-origin: center center;
         transition: all 0.3s ease;
+        text-align: center;
+        white-space: nowrap;
       }
 
       .animate-button {
@@ -204,11 +206,11 @@
           const LANDSCAPE = {
             animateButton: {
               bottom: "10%",
-              right: "66%"  // Adjust this value to move Animate Me button left/right
+              right: "66%"  // Your desired position
             },
             infoButton: {
               bottom: "10%",
-              right: "65%" // Adjust this value to move Info button left/right
+              right: "60%"
             }
           };
           
@@ -237,24 +239,30 @@
               // Apply landscape positions from the configuration
               animateButton.style.bottom = LANDSCAPE.animateButton.bottom;
               animateButton.style.right = LANDSCAPE.animateButton.right;
-              animateButton.style.transform = "translateY(50%) rotate(90deg)";
+              
+              // Fix for text alignment when rotated - adjust transform-origin
+              animateButton.style.transformOrigin = "center center";
+              animateButton.style.transform = "rotate(90deg)";
               
               infoButton.style.bottom = LANDSCAPE.infoButton.bottom;
               infoButton.style.right = LANDSCAPE.infoButton.right;
-              infoButton.style.transform = "translateY(50%) rotate(90deg)";
+              infoButton.style.transformOrigin = "center center";
+              infoButton.style.transform = "rotate(90deg)";
               
             } else {
-              // Keep original rotation in portrait mode
+              // Portrait mode settings
               videoPlane.setAttribute("rotation", "0 0 0");
-
-              // Apply portrait positions from the configuration
+              
+              // Reset transform origin and rotation
+              animateButton.style.transformOrigin = "center center";
+              animateButton.style.transform = "rotate(0deg)";
               animateButton.style.bottom = PORTRAIT.animateButton.bottom;
               animateButton.style.right = PORTRAIT.animateButton.right;
-              animateButton.style.transform = "rotate(0deg)";
               
+              infoButton.style.transformOrigin = "center center";
+              infoButton.style.transform = "rotate(0deg)";
               infoButton.style.bottom = PORTRAIT.infoButton.bottom;
               infoButton.style.right = PORTRAIT.infoButton.right;
-              infoButton.style.transform = "rotate(0deg)";
             }
             
             // Update Google button position and rotation separately
