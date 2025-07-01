@@ -107,15 +107,28 @@
         box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
       }
 
-      /* For mobile devices, adjust positioning */
-      @media (max-width: 480px) {
+      /* Add specific landscape orientation styles */
+      @media (orientation: landscape) {
         .animate-button {
           bottom: 20px;
           right: 20px;
         }
         
         .info-button {
-          bottom: 80px; /* Keep above the animate button */
+          bottom: 20px;
+          right: 180px; /* Position to the left of animate button in landscape */
+        }
+      }
+
+      /* Keep portrait orientation styles */
+      @media (orientation: portrait) {
+        .animate-button {
+          bottom: 20px;
+          right: 20px;
+        }
+        
+        .info-button {
+          bottom: 80px; /* Position above the animate button in portrait */
           right: 20px;
         }
       }
@@ -196,9 +209,15 @@
               videoPlane.setAttribute("rotation", "0 0 0");
 
               // Only rotate UI buttons
-              animateButton.style.transform = "rotate(90deg)";
-              infoButton.style.transform = "rotate(90deg)";
-              googleButton.style.transform = "rotate(90deg)";
+              animateButton.style.transform = "rotate(0deg)";
+              infoButton.style.transform = "rotate(0deg)";
+              
+              // Update button positions for landscape
+              animateButton.style.bottom = "20px";
+              animateButton.style.right = "20px";
+              infoButton.style.bottom = "20px";
+              infoButton.style.right = "180px"; // Position to the left in landscape
+              
             } else {
               // Keep original rotation in portrait mode
               videoPlane.setAttribute("rotation", "0 0 0");
@@ -206,7 +225,18 @@
               // Reset UI buttons rotation
               animateButton.style.transform = "rotate(0deg)";
               infoButton.style.transform = "rotate(0deg)";
-              googleButton.style.transform = "translate(-50%, -50%) scale(1)";
+              
+              // Update button positions for portrait
+              animateButton.style.bottom = "20px";
+              animateButton.style.right = "20px";
+              infoButton.style.bottom = "80px"; // Position above in portrait
+              infoButton.style.right = "20px";
+            }
+            
+            // Update Google button position and rotation separately
+            if (googleButton.style.display === "block") {
+              const rotation = orientation === 'landscape' ? 'rotate(0deg)' : 'rotate(0deg)';
+              googleButton.style.transform = `translate(-50%, -50%) scale(1) ${rotation}`;
             }
           };
           
