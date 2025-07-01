@@ -186,7 +186,7 @@
           let isAnimatePressed = false;
           let isTargetFound = false;
           
-          // Device orientation detection
+          // Device orientation detection - improved version
           window.addEventListener("deviceorientation", (event) => {
             // Get gamma (rotation around front-to-back axis)
             const gamma = Math.abs(event.gamma);
@@ -208,7 +208,7 @@
               // Keep video in original orientation (no rotation)
               videoPlane.setAttribute("rotation", "0 0 0");
 
-              // Only rotate UI buttons
+              // Rotate UI buttons for landscape
               animateButton.style.transform = "rotate(0deg)";
               infoButton.style.transform = "rotate(0deg)";
               
@@ -222,7 +222,7 @@
               // Keep original rotation in portrait mode
               videoPlane.setAttribute("rotation", "0 0 0");
 
-              // Reset UI buttons rotation
+              // Reset UI buttons rotation for portrait
               animateButton.style.transform = "rotate(0deg)";
               infoButton.style.transform = "rotate(0deg)";
               
@@ -239,6 +239,25 @@
               googleButton.style.transform = `translate(-50%, -50%) scale(1) ${rotation}`;
             }
           };
+          
+          // Add window resize event listener to detect orientation changes
+          window.addEventListener('resize', () => {
+            const newOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+            if (newOrientation !== deviceOrientation) {
+              deviceOrientation = newOrientation;
+              updateLayout(deviceOrientation);
+            }
+          });
+
+          // Also listen for orientation change event
+          window.addEventListener('orientationchange', () => {
+            // Small delay to ensure dimensions have updated
+            setTimeout(() => {
+              const newOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+              deviceOrientation = newOrientation;
+              updateLayout(deviceOrientation);
+            }, 100);
+          });
           
           // Initialize layout based on current orientation
           updateLayout(deviceOrientation);
