@@ -60,6 +60,7 @@
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         text-transform: uppercase;
         letter-spacing: 1px;
+        transform-origin: center;
         transition: all 0.3s ease;
       }
 
@@ -209,8 +210,8 @@
               videoPlane.setAttribute("rotation", "0 0 0");
 
               // Rotate UI buttons for landscape
-              animateButton.style.transform = "rotate(0deg)";
-              infoButton.style.transform = "rotate(0deg)";
+              animateButton.style.transform = "rotate(90deg)";
+              infoButton.style.transform = "rotate(90deg)";
               
               // Update button positions for landscape
               animateButton.style.bottom = "20px";
@@ -235,7 +236,7 @@
             
             // Update Google button position and rotation separately
             if (googleButton.style.display === "block") {
-              const rotation = orientation === 'landscape' ? 'rotate(0deg)' : 'rotate(0deg)';
+              const rotation = orientation === 'landscape' ? 'rotate(90deg)' : 'rotate(0deg)';
               googleButton.style.transform = `translate(-50%, -50%) scale(1) ${rotation}`;
             }
           };
