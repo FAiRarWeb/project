@@ -46,6 +46,10 @@
       }
 
       .control-button {
+        position: absolute;
+        z-index: 20;
+        font-weight: bold;
+        cursor: pointer;
         background-color: rgba(76, 175, 80, 0.8);
         border-radius: 8px;
         padding: 10px 15px;
@@ -60,13 +64,13 @@
       }
 
       .animate-button {
-        top: 10px;
-        right: 10px;
+        bottom: 20px;
+        right: 20px;
       }
 
       .info-button {
-        top: 10px;
-        right: 150px; /* Increased from 120px to prevent overlap */
+        bottom: 80px; /* Position above the animate button */
+        right: 20px;
       }
 
       .control-button:hover {
@@ -103,16 +107,16 @@
         box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
       }
 
-      /* For mobile devices, adjust positioning further */
+      /* For mobile devices, adjust positioning */
       @media (max-width: 480px) {
         .animate-button {
-          top: 10px;
-          right: 10px;
+          bottom: 20px;
+          right: 20px;
         }
         
         .info-button {
-          top: 60px; /* Move below the animate button on small screens */
-          right: 10px;
+          bottom: 80px; /* Keep above the animate button */
+          right: 20px;
         }
       }
     </style>
