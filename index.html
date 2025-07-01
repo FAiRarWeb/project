@@ -56,6 +56,7 @@
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         text-transform: uppercase;
         letter-spacing: 1px;
+        transition: all 0.3s ease;
       }
 
       .animate-button {
@@ -78,14 +79,9 @@
         transform: scale(0.95);
       }
 
-      .control-button.animate {
-        animation: buttonPulse 0.4s ease-in-out; /* Reduced from 0.8s to 0.4s */
-      }
-
-      @keyframes buttonPulse {
-        0% { transform: scale(1); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
-        50% { transform: scale(1.2); background-color: #2E7D32; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4); }
-        100% { transform: scale(1); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
+      .control-button.pressed {
+        background-color: #2E7D32;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
       }
 
       .google-button {
@@ -252,20 +248,20 @@
 
           // Animate Me button - controls video playback
           animateButton.addEventListener("click", () => {
-            // Add animation class
-            animateButton.classList.add("animate");
-
-            // Remove animation class after animation completes
-            setTimeout(() => {
-              animateButton.classList.remove("animate");
-            }, 400); // Reduced from 600ms to 400ms to match the CSS animation duration
-
+            // Toggle pressed state for color change
+            animateButton.classList.toggle("pressed");
+            
             // Toggle video playback
             isAnimatePressed = !isAnimatePressed;
             
             // Hide the "i" button when video is played
             if (isAnimatePressed) {
               googleButton.style.display = "none";
+              // Keep the pressed state when video is playing
+              animateButton.classList.add("pressed");
+            } else {
+              // Remove pressed state when video is stopped
+              animateButton.classList.remove("pressed");
             }
             
             checkAndPlayVideo();
@@ -275,23 +271,22 @@
 
           // Info button - controls "i" button visibility and closes video
           infoButton.addEventListener("click", () => {
-            // Add animation class
-            infoButton.classList.add("animate");
-
-            // Remove animation class after animation completes
-            setTimeout(() => {
-              infoButton.classList.remove("animate");
-            }, 400); // Reduced from 600ms to 400ms
-
             // Toggle info button visibility
             const isHidden = googleButton.style.display === "none" || googleButton.style.display === "";
-            googleButton.style.display = isHidden ? "block" : "none";
-
-            // Close video when info button is pressed
+            
+            // Toggle pressed state based on visibility
             if (isHidden) {
+              infoButton.classList.add("pressed");
+              googleButton.style.display = "block";
+              
+              // Close video when info button is pressed
               videoPlane.setAttribute("visible", false);
               videoEl.pause();
               isAnimatePressed = false;
+              animateButton.classList.remove("pressed");
+            } else {
+              infoButton.classList.remove("pressed");
+              googleButton.style.display = "none";
             }
 
             console.log("Info button pressed, googleButton visible:", !isHidden);
