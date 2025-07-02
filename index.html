@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <title>MindAR AR Responsive</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <meta name="screen-orientation" content="portrait" />
 
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
@@ -47,6 +46,10 @@
       }
 
       .control-button {
+        position: absolute;
+        z-index: 20;
+        font-weight: bold;
+        cursor: pointer;
         background-color: rgba(76, 175, 80, 0.8);
         border-radius: 8px;
         padding: 10px 15px;
@@ -57,6 +60,8 @@
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         text-transform: uppercase;
         letter-spacing: 1px;
+        transform-origin: center center;
+        transition: all 0.3s ease;
         text-align: center;
         white-space: nowrap;
       }
@@ -67,7 +72,7 @@
       }
 
       .info-button {
-        bottom: 80px;
+        bottom: 80px; /* Position above the animate button */
         right: 20px;
       }
 
@@ -104,6 +109,32 @@
         transform: translate(-50%, -50%) scale(1.15) rotate(10deg);
         box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
       }
+
+      /* Add specific landscape orientation styles */
+      @media (orientation: landscape) {
+        .animate-button {
+          bottom: 20px;
+          right: 20px;
+        }
+        
+        .info-button {
+          bottom: 20px;
+          right: 100px; /* Reduced from 180px to be closer in landscape */
+        }
+      }
+
+      /* Keep portrait orientation styles */
+      @media (orientation: portrait) {
+        .animate-button {
+          bottom: 20px;
+          right: 20px;
+        }
+        
+        .info-button {
+          bottom: 80px; /* Position above the animate button in portrait */
+          right: 20px;
+        }
+      }
     </style>
   </head>
 
@@ -126,19 +157,16 @@
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-      <!-- Container for all AR content -->
-      <a-entity id="ar-content-container" rotation="0 0 0">
-        <a-entity mindar-image-target="targetIndex: 0" videohandler>
-          <a-video
-            src="#video1"
-            position="0 0 0.01"
-            width="1"
-            height="0.45"
-            autoplay="false"
-            loop="true"
-            visible="false"
-          ></a-video>
-        </a-entity>
+      <a-entity mindar-image-target="targetIndex: 0" videohandler>
+        <a-video
+          src="#video1"
+          position="0 0 0.01"
+          width="1"
+          height="0.45"
+          autoplay="false"
+          loop="true"
+          visible="false"
+        ></a-video>
       </a-entity>
     </a-scene>
 
@@ -154,49 +182,97 @@
           const animateButton = document.querySelector("#animateButton");
           const infoButton = document.querySelector("#infoButton");
           const googleButton = document.querySelector("#googleButton");
-          const arContent = document.querySelector("#ar-content-container");
           const camera = document.querySelector("a-camera").object3D;
 
+          // Track states
           let deviceOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
           let isAnimatePressed = false;
           let isTargetFound = false;
-
-          function updateLayout(orientation) {
-            console.log("Device orientation:", orientation);
-
-            // Rotate AR content container
-            if (orientation === 'landscape') {
-              arContent.setAttribute("rotation", "0 0 90");
-              animateButton.style.transform = "rotate(90deg)";
-              infoButton.style.transform = "rotate(90deg)";
-            } else {
-              arContent.setAttribute("rotation", "0 0 0");
-              animateButton.style.transform = "rotate(0deg)";
-              infoButton.style.transform = "rotate(0deg)";
+          
+          // EASY POSITION ADJUSTMENT - Change these values to reposition buttons
+          // Portrait mode positions
+          const PORTRAIT = {
+            animateButton: {
+              bottom: "20px",
+              right: "20px"
+            },
+            infoButton: {
+              bottom: "80px",
+              right: "20px"
             }
-
-            // Keep button positions consistent
-            animateButton.style.bottom = "20px";
-            animateButton.style.right = "20px";
-            infoButton.style.bottom = "80px";
-            infoButton.style.right = "20px";
-
-            if (googleButton.style.display === "block") {
-              const rotation = orientation === 'landscape' ? 'rotate(90deg)' : 'rotate(0deg)';
-              googleButton.style.transform = `translate(-50%, -50%) ${rotation}`;
+          };
+          
+          // Landscape mode positions
+          const LANDSCAPE = {
+            animateButton: {
+              bottom: "10%",
+              right: "66%"  // Your desired position
+            },
+            infoButton: {
+              bottom: "6%",
+              right: "60%"
             }
-          }
-
+          };
+          
+          // Device orientation detection - improved version
           window.addEventListener("deviceorientation", (event) => {
+            // Get gamma (rotation around front-to-back axis)
             const gamma = Math.abs(event.gamma);
+            
+            // Determine orientation based on gamma angle
             const newOrientation = (gamma > 45 && gamma < 135) ? 'landscape' : 'portrait';
-
+            
+            // Only update if orientation changed
             if (newOrientation !== deviceOrientation) {
               deviceOrientation = newOrientation;
               updateLayout(deviceOrientation);
             }
           }, true);
+          
+          const updateLayout = (orientation) => {
+            console.log("Device orientation:", orientation);
+            
+            if (orientation === 'landscape') {
+              // Keep video in original orientation (no rotation)
+              videoPlane.setAttribute("rotation", "0 0 0");
 
+              // Apply landscape positions from the configuration
+              animateButton.style.bottom = LANDSCAPE.animateButton.bottom;
+              animateButton.style.right = LANDSCAPE.animateButton.right;
+              
+              // Fix for text alignment when rotated - adjust transform-origin
+              animateButton.style.transformOrigin = "center center";
+              animateButton.style.transform = "rotate(90deg)";
+              
+              infoButton.style.bottom = LANDSCAPE.infoButton.bottom;
+              infoButton.style.right = LANDSCAPE.infoButton.right;
+              infoButton.style.transformOrigin = "center center";
+              infoButton.style.transform = "rotate(90deg)";
+              
+            } else {
+              // Portrait mode settings
+              videoPlane.setAttribute("rotation", "0 0 0");
+              
+              // Reset transform origin and rotation
+              animateButton.style.transformOrigin = "center center";
+              animateButton.style.transform = "rotate(0deg)";
+              animateButton.style.bottom = PORTRAIT.animateButton.bottom;
+              animateButton.style.right = PORTRAIT.animateButton.right;
+              
+              infoButton.style.transformOrigin = "center center";
+              infoButton.style.transform = "rotate(0deg)";
+              infoButton.style.bottom = PORTRAIT.infoButton.bottom;
+              infoButton.style.right = PORTRAIT.infoButton.right;
+            }
+            
+            // Update Google button position and rotation separately
+            if (googleButton.style.display === "block") {
+              const rotation = orientation === 'landscape' ? 'rotate(90deg)' : 'rotate(0deg)';
+              googleButton.style.transform = `translate(-50%, -50%) scale(1) ${rotation}`;
+            }
+          };
+          
+          // Add window resize event listener to detect orientation changes
           window.addEventListener('resize', () => {
             const newOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
             if (newOrientation !== deviceOrientation) {
@@ -205,18 +281,22 @@
             }
           });
 
+          // Also listen for orientation change event
           window.addEventListener('orientationchange', () => {
+            // Small delay to ensure dimensions have updated
             setTimeout(() => {
               const newOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
               deviceOrientation = newOrientation;
               updateLayout(deviceOrientation);
             }, 100);
           });
-
+          
+          // Initialize layout based on current orientation
           updateLayout(deviceOrientation);
-
+          
           const checkAndPlayVideo = () => {
             if (isAnimatePressed && isTargetFound) {
+              console.log("Both conditions met - playing video");
               videoPlane.setAttribute("visible", true);
               videoEl.play().catch(e => console.warn("Autoplay blocked:", e));
             } else {
@@ -226,37 +306,65 @@
           };
 
           this.el.addEventListener("targetFound", () => {
+            console.log("Target found");
             isTargetFound = true;
             animateButton.style.display = "block";
             infoButton.style.display = "block";
+
+            // Apply current orientation when target is found
             updateLayout(deviceOrientation);
+
+            // Check if we should play video
             checkAndPlayVideo();
           });
 
           this.el.addEventListener("targetLost", () => {
+            console.log("Target lost");
             isTargetFound = false;
             videoEl.pause();
             videoPlane.setAttribute("visible", false);
             animateButton.style.display = "none";
             infoButton.style.display = "none";
             googleButton.style.display = "none";
+
+            // Reset button state when target is lost
             isAnimatePressed = false;
           });
 
+          // Animate Me button - controls video playback
           animateButton.addEventListener("click", () => {
+            // Toggle pressed state for color change
+            animateButton.classList.toggle("pressed");
+            
+            // Toggle video playback
             isAnimatePressed = !isAnimatePressed;
-            animateButton.classList.toggle("pressed", isAnimatePressed);
+            
+            // Hide the "i" button when video is played
             if (isAnimatePressed) {
               googleButton.style.display = "none";
+              // Keep the pressed state when video is playing
+              animateButton.classList.add("pressed");
+            } else {
+              // Remove pressed state when video is stopped
+              animateButton.classList.remove("pressed");
             }
+            
             checkAndPlayVideo();
+
+            console.log("Animate button pressed, isAnimatePressed:", isAnimatePressed);
           });
 
+          // Info button - controls "i" button visibility and closes video
           infoButton.addEventListener("click", () => {
+            // Toggle info button visibility
             const isHidden = googleButton.style.display === "none" || googleButton.style.display === "";
+            
+            // Toggle pressed state based on visibility
             if (isHidden) {
               infoButton.classList.add("pressed");
               googleButton.style.display = "block";
+              
+              // Close video when info button is pressed
               videoPlane.setAttribute("visible", false);
               videoEl.pause();
               isAnimatePressed = false;
@@ -265,13 +373,17 @@
               infoButton.classList.remove("pressed");
               googleButton.style.display = "none";
             }
+
+            console.log("Info button pressed, googleButton visible:", !isHidden);
           });
 
           this.tick = () => {
             if (googleButton.style.display !== "block" || !isTargetFound) return;
 
+            // Position button on the video plane (behind the video)
             const videoWorldPosition = new THREE.Vector3();
             videoPlane.object3D.getWorldPosition(videoWorldPosition);
+
             const vector = videoWorldPosition.clone();
             vector.project(camera.children[0]);
 
@@ -286,6 +398,7 @@
             googleButton.style.left = `${x}px`;
             googleButton.style.top = `${y}px`;
 
+            // Apply rotation based on current orientation along with scaling
             const rotation = deviceOrientation === 'landscape' ? 'rotate(90deg)' : 'rotate(0deg)';
             googleButton.style.transform = `translate(-50%, -50%) scale(${scaleFactor}) ${rotation}`;
           };
