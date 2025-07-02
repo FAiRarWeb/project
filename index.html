@@ -110,33 +110,7 @@
         box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
       }
 
-      /* Add specific landscape orientation styles */
-      @media (orientation: landscape) {
-        .animate-button {
-          bottom: 20px;
-          right: 20px;
-        }
-        
-        .info-button {
-          bottom: 20px;
-          right: 100px; /* Reduced from 180px to be closer in landscape */
-        }
-      }
-
-      /* Keep portrait orientation styles */
-      @media (orientation: portrait) {
-        .animate-button {
-          bottom: 20px;
-          right: 20px;
-        }
-        
-        .info-button {
-          bottom: 80px; /* Position above the animate button in portrait */
-          right: 20px;
-        }
-      }
-
-      /* Add orientation message styles */
+      /* Simplified orientation message styles */
       #orientation-message {
         position: fixed;
         top: 0;
@@ -232,15 +206,15 @@
           let isAnimatePressed = false;
           let isTargetFound = false;
           
-          // Check if device is in portrait mode and show/hide orientation message
+          // Simplified orientation check function
           function checkOrientation() {
             if (window.innerHeight > window.innerWidth) {
-              // Portrait mode - show message and hide AR
+              // Portrait mode - show message
               orientationMessage.style.display = "flex";
               scene.pause();
               if (videoEl) videoEl.pause();
             } else {
-              // Landscape mode - hide message and show AR
+              // Landscape mode - hide message
               orientationMessage.style.display = "none";
               scene.play();
               if (isAnimatePressed && isTargetFound && videoEl) {
