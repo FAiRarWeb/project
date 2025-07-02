@@ -173,17 +173,35 @@
     <button id="animateButton" class="control-button animate-button">Animate Me</button>
     <button id="infoButton" class="control-button info-button">Info</button>
     <button id="googleButton" class="google-button" onclick="window.open('https://www.google.com', '_blank')">i</button>
+    <button id="googleButton2" class="google-button" onclick="window.open('https://www.youtube.com', '_blank')">i</button>
+    <button id="googleButton3" class="google-button" onclick="window.open('https://www.facebook.com', '_blank')">i</button>
+    <button id="googleButton4" class="google-button" onclick="window.open('https://www.twitter.com', '_blank')">i</button>
+    <button id="googleButton5" class="google-button" onclick="window.open('https://www.instagram.com', '_blank')">i</button>
 
     <script>
-      AFRAME.registerComponent("videohandler", {
+      const videohandler = {
         init: function () {
           const videoEl = document.querySelector("#video1");
           const videoPlane = this.el.querySelector("a-video");
           const animateButton = document.querySelector("#animateButton");
           const infoButton = document.querySelector("#infoButton");
           const googleButton = document.querySelector("#googleButton");
+          const googleButton2 = document.querySelector("#googleButton2");
+          const googleButton3 = document.querySelector("#googleButton3");
+          const googleButton4 = document.querySelector("#googleButton4");
+          const googleButton5 = document.querySelector("#googleButton5");
+          const allGoogleButtons = [googleButton, googleButton2, googleButton3, googleButton4, googleButton5];
           const camera = document.querySelector("a-camera").object3D;
-
+          
+          // Button positions (relative to video center)
+          const buttonPositions = [
+            { x: 0, y: 0 },      // Center (original button)
+            { x: -0.4, y: 0.3 },  // Top left
+            { x: 0.4, y: 0.3 },   // Top right
+            { x: -0.4, y: -0.3 }, // Bottom left
+            { x: 0.4, y: -0.3 }   // Bottom right
+          ];
+          
           // Track states
           let deviceOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
           let isAnimatePressed = false;
@@ -325,7 +343,11 @@
             videoPlane.setAttribute("visible", false);
             animateButton.style.display = "none";
             infoButton.style.display = "none";
-            googleButton.style.display = "none";
+            
+            // Hide all google buttons
+            allGoogleButtons.forEach(btn => {
+              btn.style.display = "none";
+            });
 
             // Reset button state when target is lost
             isAnimatePressed = false;
@@ -339,9 +361,11 @@
             // Toggle video playback
             isAnimatePressed = !isAnimatePressed;
             
-            // Hide the "i" button when video is played
+            // Hide all "i" buttons when video is played
             if (isAnimatePressed) {
-              googleButton.style.display = "none";
+              allGoogleButtons.forEach(btn => {
+                btn.style.display = "none";
+              });
               // Keep the pressed state when video is playing
               animateButton.classList.add("pressed");
             } else {
@@ -356,13 +380,13 @@
 
           // Info button - controls "i" button visibility and closes video
           infoButton.addEventListener("click", () => {
-            // Toggle info button visibility
             const isHidden = googleButton.style.display === "none" || googleButton.style.display === "";
             
-            // Toggle pressed state based on visibility
             if (isHidden) {
               infoButton.classList.add("pressed");
-              googleButton.style.display = "block";
+              allGoogleButtons.forEach(btn => {
+                btn.style.display = "block";
+              });
               
               // Close video when info button is pressed
               videoPlane.setAttribute("visible", false);
@@ -371,39 +395,51 @@
               animateButton.classList.remove("pressed");
             } else {
               infoButton.classList.remove("pressed");
-              googleButton.style.display = "none";
+              allGoogleButtons.forEach(btn => {
+                btn.style.display = "none";
+              });
             }
 
-            console.log("Info button pressed, googleButton visible:", !isHidden);
+            console.log("Info button pressed, googleButtons visible:", !isHidden);
           });
 
           this.tick = () => {
             if (googleButton.style.display !== "block" || !isTargetFound) return;
 
-            // Position button on the video plane (behind the video)
+            // Position buttons on the video plane
             const videoWorldPosition = new THREE.Vector3();
             videoPlane.object3D.getWorldPosition(videoWorldPosition);
 
-            const vector = videoWorldPosition.clone();
-            vector.project(camera.children[0]);
+            allGoogleButtons.forEach((btn, index) => {
+              // Create a position vector for this button
+              const buttonPos = new THREE.Vector3(
+                videoWorldPosition.x + buttonPositions[index].x,
+                videoWorldPosition.y + buttonPositions[index].y,
+                videoWorldPosition.z
+              );
+              
+              const vector = buttonPos.clone();
+              vector.project(camera.children[0]);
 
-            const widthHalf = window.innerWidth / 2;
-            const heightHalf = window.innerHeight / 2;
-            const x = (vector.x * widthHalf) + widthHalf;
-            const y = -(vector.y * heightHalf) + heightHalf;
+              const widthHalf = window.innerWidth / 2;
+              const heightHalf = window.innerHeight / 2;
+              const x = (vector.x * widthHalf) + widthHalf;
+              const y = -(vector.y * heightHalf) + heightHalf;
 
-            const distance = camera.position.distanceTo(videoWorldPosition);
-            const scaleFactor = Math.max(0.5, Math.min(1.5, 1 / Math.max(0.1, distance)));
+              const distance = camera.position.distanceTo(buttonPos);
+              const scaleFactor = Math.max(0.5, Math.min(1.5, 1 / Math.max(0.1, distance)));
 
-            googleButton.style.left = `${x}px`;
-            googleButton.style.top = `${y}px`;
+              btn.style.left = `${x}px`;
+              btn.style.top = `${y}px`;
 
-            // Apply rotation based on current orientation along with scaling
-            const rotation = deviceOrientation === 'landscape' ? 'rotate(90deg)' : 'rotate(0deg)';
-            googleButton.style.transform = `translate(-50%, -50%) scale(${scaleFactor}) ${rotation}`;
+              // Apply rotation based on current orientation along with scaling
+              const rotation = deviceOrientation === 'landscape' ? 'rotate(90deg)' : 'rotate(0deg)';
+              btn.style.transform = `translate(-50%, -50%) scale(${scaleFactor}) ${rotation}`;
+            });
           };
         },
-      });
+      };
+      AFRAME.registerComponent("videohandler", videohandler);
     </script>
   </body>
 </html>
