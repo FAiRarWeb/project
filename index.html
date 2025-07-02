@@ -418,13 +418,13 @@
               
               // Different positions for each button - positioned on specific elements
               let offsetX = 0, offsetY = 0;
-              
+
               switch(index) {
                 case 0: // Fish (top left)
-                  offsetX = -0.70; offsetY = 0.9;
+                  offsetX = -0.35; offsetY = 0.15;
                   break;
                 case 1: // Boat (bottom left)
-                  offsetX = -0.3; offsetY = -0.15;
+                  offsetX = -0.4; offsetY = -0.2;  // Adjusted boat position for better accuracy
                   break;
                 case 2: // Crocodile (bottom right)
                   offsetX = 0.3; offsetY = -0.15;
@@ -433,7 +433,7 @@
                   offsetX = 0.35; offsetY = 0.15;
                   break;
               }
-              
+
               // Adjust offsets based on orientation to maintain positions on elements
               if (deviceOrientation === 'landscape') {
                 // Slight adjustments for landscape mode to keep buttons on the same elements
@@ -442,7 +442,7 @@
                     offsetX = -0.35; offsetY = 0.15;
                     break;
                   case 1: // Boat
-                    offsetX = -0.3; offsetY = -0.15;
+                    offsetX = -0.4; offsetY = -0.2;  // Adjusted boat position for landscape mode
                     break;
                   case 2: // Crocodile
                     offsetX = 0.3; offsetY = -0.15;
