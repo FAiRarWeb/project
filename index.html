@@ -172,10 +172,10 @@
 
     <button id="animateButton" class="control-button animate-button">Animate Me</button>
     <button id="infoButton" class="control-button info-button">Info</button>
-    <button id="googleButton" class="google-button" onclick="window.open('https://www.google.com', '_blank')">i</button>
-    <button id="googleButton2" class="google-button" onclick="window.open('https://www.google.com', '_blank')">i</button>
-    <button id="googleButton3" class="google-button" onclick="window.open('https://www.google.com', '_blank')">i</button>
-    <button id="googleButton4" class="google-button" onclick="window.open('https://www.google.com', '_blank')">i</button>
+    <button id="googleButton" class="google-button" onclick="window.open('https://en.wikipedia.org/wiki/Fish', '_blank')">i</button>
+    <button id="googleButton2" class="google-button" onclick="window.open('https://en.wikipedia.org/wiki/Boat', '_blank')">i</button>
+    <button id="googleButton3" class="google-button" onclick="window.open('https://en.wikipedia.org/wiki/Crocodile', '_blank')">i</button>
+    <button id="googleButton4" class="google-button" onclick="window.open('https://en.wikipedia.org/wiki/Forest', '_blank')">i</button>
 
     <script>
       AFRAME.registerComponent("videohandler", {
@@ -416,22 +416,41 @@
               const widthHalf = window.innerWidth / 2;
               const heightHalf = window.innerHeight / 2;
               
-              // Different positions for each button
+              // Different positions for each button - positioned on specific elements
               let offsetX = 0, offsetY = 0;
               
               switch(index) {
-                case 0: // Original button - center
-                  offsetX = 0; offsetY = 0;
+                case 0: // Fish (top left)
+                  offsetX = -0.35; offsetY = 0.15;
                   break;
-                case 1: // Top left corner
-                  offsetX = -0.3; offsetY = 0.2;
+                case 1: // Boat (bottom left)
+                  offsetX = -0.3; offsetY = -0.15;
                   break;
-                case 2: // Bottom right corner
-                  offsetX = 0.3; offsetY = -0.2;
+                case 2: // Crocodile (bottom right)
+                  offsetX = 0.3; offsetY = -0.15;
                   break;
-                case 3: // Top right corner
-                  offsetX = 0.3; offsetY = 0.2;
+                case 3: // Green area (top right)
+                  offsetX = 0.35; offsetY = 0.15;
                   break;
+              }
+              
+              // Adjust offsets based on orientation to maintain positions on elements
+              if (deviceOrientation === 'landscape') {
+                // Slight adjustments for landscape mode to keep buttons on the same elements
+                switch(index) {
+                  case 0: // Fish
+                    offsetX = -0.35; offsetY = 0.15;
+                    break;
+                  case 1: // Boat
+                    offsetX = -0.3; offsetY = -0.15;
+                    break;
+                  case 2: // Crocodile
+                    offsetX = 0.3; offsetY = -0.15;
+                    break;
+                  case 3: // Green area
+                    offsetX = 0.35; offsetY = 0.15;
+                    break;
+                }
               }
               
               // Apply offsets to projected position
