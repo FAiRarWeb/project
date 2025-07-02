@@ -247,39 +247,29 @@
           const updateLayout = (orientation) => {
             console.log("Device orientation:", orientation);
             
-            // Get screen orientation angle
-            let orientationAngle = 0;
-            if (window.screen && window.screen.orientation) {
-              orientationAngle = window.screen.orientation.angle || 0;
-            } else if (window.orientation !== undefined) {
-              orientationAngle = window.orientation || 0;
-            }
-            
-            console.log("Orientation angle:", orientationAngle);
-            
             if (orientation === 'landscape') {
               // Apply landscape positions from the configuration
               animateButton.style.bottom = LANDSCAPE.animateButton.bottom;
               animateButton.style.right = LANDSCAPE.animateButton.right;
               
-              // Rotate based on screen orientation
+              // Fixed rotation for landscape
               animateButton.style.transformOrigin = "center center";
-              animateButton.style.transform = `rotate(${orientationAngle}deg)`;
+              animateButton.style.transform = "rotate(90deg)";
               
               infoButton.style.bottom = LANDSCAPE.infoButton.bottom;
               infoButton.style.right = LANDSCAPE.infoButton.right;
               infoButton.style.transformOrigin = "center center";
-              infoButton.style.transform = `rotate(${orientationAngle}deg)`;
+              infoButton.style.transform = "rotate(90deg)";
               
             } else {
               // Portrait mode settings
               animateButton.style.transformOrigin = "center center";
-              animateButton.style.transform = `rotate(${orientationAngle}deg)`;
+              animateButton.style.transform = "rotate(0deg)";
               animateButton.style.bottom = PORTRAIT.animateButton.bottom;
               animateButton.style.right = PORTRAIT.animateButton.right;
               
               infoButton.style.transformOrigin = "center center";
-              infoButton.style.transform = `rotate(${orientationAngle}deg)`;
+              infoButton.style.transform = "rotate(0deg)";
               infoButton.style.bottom = PORTRAIT.infoButton.bottom;
               infoButton.style.right = PORTRAIT.infoButton.right;
             }
@@ -287,7 +277,8 @@
             // Update Google button rotation separately
             allGoogleButtons.forEach(btn => {
               if (btn.style.display === "block") {
-                btn.style.transform = `translate(-50%, -50%) scale(1) rotate(${orientationAngle}deg)`;
+                const rotation = orientation === 'landscape' ? 'rotate(90deg)' : 'rotate(0deg)';
+                btn.style.transform = `translate(-50%, -50%) scale(1) ${rotation}`;
               }
             });
           };
@@ -468,16 +459,9 @@
               btn.style.left = `${x}px`;
               btn.style.top = `${y}px`;
               
-              // Get screen orientation angle
-              let orientationAngle = 0;
-              if (window.screen && window.screen.orientation) {
-                orientationAngle = window.screen.orientation.angle || 0;
-              } else if (window.orientation !== undefined) {
-                orientationAngle = window.orientation || 0;
-              }
-              
-              // Apply rotation based on screen orientation angle
-              btn.style.transform = `translate(-50%, -50%) scale(${scaleFactor}) rotate(${orientationAngle}deg)`;
+              // Apply fixed rotation based on orientation
+              const rotation = deviceOrientation === 'landscape' ? 'rotate(90deg)' : 'rotate(0deg)';
+              btn.style.transform = `translate(-50%, -50%) scale(${scaleFactor}) ${rotation}`;
             });
           };
         },
