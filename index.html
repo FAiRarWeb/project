@@ -187,12 +187,49 @@
     <button id="googleButton" class="google-button" onclick="window.open('https://www.google.com', '_blank')">i</button>
 
     <script>
-      // Function to check orientation and show/hide elements
-      function checkOrientation() {
+      // Function to check orientation using device orientation sensors
+      function checkDeviceOrientation() {
         const orientationMessage = document.getElementById('orientation-message');
         const scene = document.querySelector('a-scene');
         
+        // Request permission for device orientation if needed
+        if (typeof DeviceOrientationEvent !== 'undefined' && 
+            typeof DeviceOrientationEvent.requestPermission === 'function') {
+          DeviceOrientationEvent.requestPermission()
+            .then(permissionState => {
+              if (permissionState === 'granted') {
+                window.addEventListener('deviceorientation', handleOrientation);
+              }
+            })
+            .catch(console.error);
+        } else {
+          // For devices that don't require permission
+          window.addEventListener('deviceorientation', handleOrientation);
+        }
+        
+        // Initial check using window dimensions as fallback
         if (window.innerHeight > window.innerWidth) {
+          orientationMessage.style.display = 'flex';
+          scene.pause();
+        } else {
+          orientationMessage.style.display = 'none';
+          scene.play();
+        }
+      }
+      
+      // Handle device orientation data
+      function handleOrientation(event) {
+        const orientationMessage = document.getElementById('orientation-message');
+        const scene = document.querySelector('a-scene');
+        
+        // Get gamma (rotation around front-to-back axis)
+        const gamma = Math.abs(event.gamma);
+        
+        // Determine if device is in portrait or landscape based on gamma angle
+        // Landscape is typically when gamma is between 45 and 135 degrees
+        const isLandscape = (gamma > 45 && gamma < 135);
+        
+        if (!isLandscape) {
           // Portrait mode - hide AR scene, show message
           orientationMessage.style.display = 'flex';
           scene.pause();
@@ -204,12 +241,12 @@
       }
       
       // Check on page load
-      window.addEventListener('load', checkOrientation);
+      window.addEventListener('load', checkDeviceOrientation);
       
       // Check on resize and orientation change
-      window.addEventListener('resize', checkOrientation);
+      window.addEventListener('resize', checkDeviceOrientation);
       window.addEventListener('orientationchange', function() {
-        setTimeout(checkOrientation, 100); // Small delay to ensure dimensions update
+        setTimeout(checkDeviceOrientation, 100); // Small delay to ensure dimensions update
       });
 
       AFRAME.registerComponent("videohandler", {
@@ -222,7 +259,7 @@
           const camera = document.querySelector("a-camera").object3D;
 
           // Track states
-          let deviceOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+          let deviceOrientation = 'portrait'; // Default to portrait
           let isAnimatePressed = false;
           let isTargetFound = false;
           
@@ -263,6 +300,23 @@
             if (newOrientation !== deviceOrientation) {
               deviceOrientation = newOrientation;
               updateLayout(deviceOrientation);
+              
+              // Handle visibility based on orientation
+              if (deviceOrientation === 'portrait') {
+                // Portrait mode - hide buttons and pause video
+                if (isTargetFound) {
+                  animateButton.style.display = "none";
+                  infoButton.style.display = "none";
+                  googleButton.style.display = "none";
+                  videoPlane.setAttribute("visible", false);
+                  videoEl.pause();
+                }
+              } else if (isTargetFound) {
+                // Landscape mode with target found - show buttons
+                animateButton.style.display = "block";
+                infoButton.style.display = "block";
+                checkAndPlayVideo();
+              }
             }
           }, true);
           
@@ -346,14 +400,14 @@
             console.log("Target found");
             isTargetFound = true;
             
-            // Only show buttons and play video if in landscape mode
-            if (window.innerWidth > window.innerHeight) {
+            // Only show buttons and play video if in landscape orientation
+            if (deviceOrientation === 'landscape') {
               animateButton.style.display = "block";
               infoButton.style.display = "block";
               updateLayout(deviceOrientation);
               checkAndPlayVideo();
             } else {
-              // Don't show buttons or play video in portrait mode
+              // Don't show buttons or play video in portrait orientation
               animateButton.style.display = "none";
               infoButton.style.display = "none";
             }
