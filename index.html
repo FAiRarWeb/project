@@ -135,10 +135,22 @@
           right: 20px;
         }
       }
+
+      @keyframes rotate {
+        0% { transform: rotate(0deg); }
+        50% { transform: rotate(-90deg); }
+        100% { transform: rotate(0deg); }
+      }
     </style>
   </head>
 
   <body>
+    <div id="orientation-message" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.9); z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; font-size: 24px; text-align: center;">
+      <div>Please rotate your device</div>
+      <div style="width: 100px; height: 100px; margin: 30px auto; background-image: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"white\"><path d=\"M7.5 21h9c.8 0 1.5-.7 1.5-1.5v-13c0-.8-.7-1.5-1.5-1.5h-9c-.8 0-1.5.7-1.5 1.5v13c0 .8.7 1.5 1.5 1.5zm7.5-15h-6v10h6V6z\"/></svg>'); background-size: contain; background-repeat: no-repeat; animation: rotate 1.5s ease-in-out infinite;"></div>
+      <div>AR experience works in landscape mode only</div>
+    </div>
+
     <a-scene
       mindar-image="imageTargetSrc: https://FAiRarWeb.github.io/project123/targets.mind;
                     uiScanning: true;
@@ -175,6 +187,31 @@
     <button id="googleButton" class="google-button" onclick="window.open('https://www.google.com', '_blank')">i</button>
 
     <script>
+      // Function to check orientation and show/hide elements
+      function checkOrientation() {
+        const orientationMessage = document.getElementById('orientation-message');
+        const scene = document.querySelector('a-scene');
+        
+        if (window.innerHeight > window.innerWidth) {
+          // Portrait mode - hide AR scene, show message
+          orientationMessage.style.display = 'flex';
+          scene.pause();
+        } else {
+          // Landscape mode - show AR scene, hide message
+          orientationMessage.style.display = 'none';
+          scene.play();
+        }
+      }
+      
+      // Check on page load
+      window.addEventListener('load', checkOrientation);
+      
+      // Check on resize and orientation change
+      window.addEventListener('resize', checkOrientation);
+      window.addEventListener('orientationchange', function() {
+        setTimeout(checkOrientation, 100); // Small delay to ensure dimensions update
+      });
+
       AFRAME.registerComponent("videohandler", {
         init: function () {
           const videoEl = document.querySelector("#video1");
@@ -308,14 +345,18 @@
           this.el.addEventListener("targetFound", () => {
             console.log("Target found");
             isTargetFound = true;
-            animateButton.style.display = "block";
-            infoButton.style.display = "block";
-
-            // Apply current orientation when target is found
-            updateLayout(deviceOrientation);
-
-            // Check if we should play video
-            checkAndPlayVideo();
+            
+            // Only show buttons and play video if in landscape mode
+            if (window.innerWidth > window.innerHeight) {
+              animateButton.style.display = "block";
+              infoButton.style.display = "block";
+              updateLayout(deviceOrientation);
+              checkAndPlayVideo();
+            } else {
+              // Don't show buttons or play video in portrait mode
+              animateButton.style.display = "none";
+              infoButton.style.display = "none";
+            }
           });
 
           this.el.addEventListener("targetLost", () => {
