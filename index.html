@@ -135,48 +135,10 @@
           right: 20px;
         }
       }
-
-      #orientation-message {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.9);
-        z-index: 10000;
-        display: none;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        color: white;
-        font-size: 24px;
-        text-align: center;
-      }
-
-      .rotate-phone {
-        width: 100px;
-        height: 100px;
-        margin: 30px auto;
-        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M7.5 21h9c.8 0 1.5-.7 1.5-1.5v-13c0-.8-.7-1.5-1.5-1.5h-9c-.8 0-1.5.7-1.5 1.5v13c0 .8.7 1.5 1.5 1.5zm7.5-15h-6v10h6V6z"/></svg>');
-        background-size: contain;
-        background-repeat: no-repeat;
-        animation: rotate 1.5s ease-in-out infinite;
-      }
-
-      @keyframes rotate {
-        0% { transform: rotate(0deg); }
-        50% { transform: rotate(-90deg); }
-        100% { transform: rotate(0deg); }
-      }
     </style>
   </head>
 
   <body>
-    <div id="orientation-message">
-      <div>Please rotate your device</div>
-      <div class="rotate-phone"></div>
-      <div>AR experience works in landscape mode only</div>
-    </div>
     <a-scene
       mindar-image="imageTargetSrc: https://FAiRarWeb.github.io/project123/targets.mind;
                     uiScanning: true;
@@ -226,41 +188,7 @@
           let deviceOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
           let isAnimatePressed = false;
           let isTargetFound = false;
-          let arActive = false;
-
-          // Function to check if device is in portrait mode
-          function isPortrait() {
-            return window.innerHeight > window.innerWidth;
-          }
-
-          // Function to handle orientation changes
-          function handleOrientationChange() {
-            const orientationMessage = document.querySelector("#orientation-message");
-            
-            if (isPortrait()) {
-              // Show orientation message and hide AR
-              orientationMessage.style.display = "flex";
-              if (arActive) {
-                videoEl.pause();
-                videoPlane.setAttribute("visible", false);
-              }
-              // Hide buttons in portrait mode
-              animateButton.style.display = "none";
-              infoButton.style.display = "none";
-              googleButton.style.display = "none";
-            } else {
-              // Hide orientation message
-              orientationMessage.style.display = "none";
-              // Only show buttons if target is found
-              if (isTargetFound) {
-                animateButton.style.display = "block";
-                infoButton.style.display = "block";
-                // Check if we should play video
-                checkAndPlayVideo();
-              }
-            }
-          }
-
+          
           // EASY POSITION ADJUSTMENT - Change these values to reposition buttons
           // Portrait mode positions
           const PORTRAIT = {
@@ -380,34 +308,25 @@
           this.el.addEventListener("targetFound", () => {
             console.log("Target found");
             isTargetFound = true;
-            
-            // Only show buttons and activate AR if in landscape mode
-            if (!isPortrait()) {
-              animateButton.style.display = "block";
-              infoButton.style.display = "block";
-              arActive = true;
-              
-              // Apply current orientation when target is found
-              updateLayout(deviceOrientation);
-              
-              // Check if we should play video
-              checkAndPlayVideo();
-            } else {
-              // Show orientation message if in portrait
-              document.querySelector("#orientation-message").style.display = "flex";
-            }
+            animateButton.style.display = "block";
+            infoButton.style.display = "block";
+
+            // Apply current orientation when target is found
+            updateLayout(deviceOrientation);
+
+            // Check if we should play video
+            checkAndPlayVideo();
           });
 
           this.el.addEventListener("targetLost", () => {
             console.log("Target lost");
             isTargetFound = false;
-            arActive = false;
             videoEl.pause();
             videoPlane.setAttribute("visible", false);
             animateButton.style.display = "none";
             infoButton.style.display = "none";
             googleButton.style.display = "none";
-            
+
             // Reset button state when target is lost
             isAnimatePressed = false;
           });
@@ -483,13 +402,6 @@
             const rotation = deviceOrientation === 'landscape' ? 'rotate(90deg)' : 'rotate(0deg)';
             googleButton.style.transform = `translate(-50%, -50%) scale(${scaleFactor}) ${rotation}`;
           };
-
-          // Add event listeners for orientation changes
-          window.addEventListener("load", handleOrientationChange);
-          window.addEventListener("resize", handleOrientationChange);
-          window.addEventListener("orientationchange", () => {
-            setTimeout(handleOrientationChange, 100);
-          });
         },
       });
     </script>
