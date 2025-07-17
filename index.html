@@ -102,6 +102,9 @@
         font-size: 20px;
         font-weight: bold;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        position: fixed;
+        transform: translate(-50%, -50%);
+        z-index: 25;
       }
 
       .google-button:hover {
@@ -400,17 +403,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Info button - controls "i" button visibility
   infoButton.addEventListener("click", () => {
+    console.log("Info button clicked"); // Debug log
+    
     const activeTarget = document.querySelector("[mindar-image-target].active");
-    if (!activeTarget) return;
+    console.log("Active target:", activeTarget); // Debug log
+    
+    if (!activeTarget) {
+      console.log("No active target found");
+      return;
+    }
     
     const videoPlane = activeTarget.querySelector("a-video");
     
     // Toggle info button visibility
     const isHidden = googleButton.style.display === "none" || googleButton.style.display === "";
+    console.log("Google button is hidden:", isHidden); // Debug log
     
     if (isHidden) {
       infoButton.classList.add("pressed");
       googleButton.style.display = "block";
+      console.log("Showing Google button");
       
       // Close video when info button is pressed
       videoPlane.setAttribute("visible", false);
@@ -420,8 +432,7 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
       infoButton.classList.remove("pressed");
       googleButton.style.display = "none";
+      console.log("Hiding Google button");
     }
-
-    console.log("Info button pressed, googleButton visible:", !isHidden);
   });
 </html>
