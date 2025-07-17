@@ -319,6 +319,12 @@
           this.el.addEventListener("targetFound", () => {
             console.log("Target found");
             isTargetFound = true;
+            
+            // Mark this target as active
+            const allTargets = document.querySelectorAll("[mindar-image-target]");
+            allTargets.forEach(target => target.classList.remove("active"));
+            this.el.classList.add("active");
+            
             animateButton.style.display = "block";
             infoButton.style.display = "block";
 
@@ -374,6 +380,28 @@
             if (isHidden) {
               infoButton.classList.add("pressed");
               googleButton.style.display = "block";
+              
+              // Position the Google button correctly based on the current target
+              const activeTarget = document.querySelector("[mindar-image-target].active");
+              if (activeTarget) {
+                const videoPlane = activeTarget.querySelector("a-video");
+                const videoWorldPosition = new THREE.Vector3();
+                videoPlane.object3D.getWorldPosition(videoWorldPosition);
+                
+                // Update position in the next frame to ensure proper positioning
+                requestAnimationFrame(() => {
+                  const vector = videoWorldPosition.clone();
+                  vector.project(camera.children[0]);
+                  
+                  const widthHalf = window.innerWidth / 2;
+                  const heightHalf = window.innerHeight / 2;
+                  const x = (vector.x * widthHalf) + widthHalf;
+                  const y = -(vector.y * heightHalf) + heightHalf;
+                  
+                  googleButton.style.left = `${x}px`;
+                  googleButton.style.top = `${y}px`;
+                });
+              }
               
               // Close video when info button is pressed
               videoPlane.setAttribute("visible", false);
