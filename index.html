@@ -197,7 +197,6 @@
 
           // Track states
           let deviceOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
-          let isAnimatePressed = false;
           let isTargetFound = false;
           
           // EASY POSITION ADJUSTMENT - Change these values to reposition buttons
@@ -305,17 +304,6 @@
           // Initialize layout based on current orientation
           updateLayout(deviceOrientation);
           
-          const checkAndPlayVideo = () => {
-            if (isAnimatePressed && isTargetFound) {
-              console.log("Both conditions met - playing video");
-              videoPlane.setAttribute("visible", true);
-              videoEl.play().catch(e => console.warn("Autoplay blocked:", e));
-            } else {
-              videoPlane.setAttribute("visible", false);
-              videoEl.pause();
-            }
-          };
-
           this.el.addEventListener("targetFound", () => {
             console.log("Target found");
             isTargetFound = true;
@@ -330,9 +318,6 @@
 
             // Apply current orientation when target is found
             updateLayout(deviceOrientation);
-
-            // Check if we should play video
-            checkAndPlayVideo();
           });
 
           this.el.addEventListener("targetLost", () => {
@@ -343,77 +328,6 @@
             animateButton.style.display = "none";
             infoButton.style.display = "none";
             googleButton.style.display = "none";
-
-            // Reset button state when target is lost
-            isAnimatePressed = false;
-          });
-
-          // Animate Me button - controls video playback
-          animateButton.addEventListener("click", () => {
-            // Toggle pressed state for color change
-            animateButton.classList.toggle("pressed");
-            
-            // Toggle video playback
-            isAnimatePressed = !isAnimatePressed;
-            
-            // Hide the "i" button when video is played
-            if (isAnimatePressed) {
-              googleButton.style.display = "none";
-              // Keep the pressed state when video is playing
-              animateButton.classList.add("pressed");
-            } else {
-              // Remove pressed state when video is stopped
-              animateButton.classList.remove("pressed");
-            }
-            
-            checkAndPlayVideo();
-
-            console.log("Animate button pressed, isAnimatePressed:", isAnimatePressed);
-          });
-
-          // Info button - controls "i" button visibility and closes video
-          infoButton.addEventListener("click", () => {
-            // Toggle info button visibility
-            const isHidden = googleButton.style.display === "none" || googleButton.style.display === "";
-            
-            // Toggle pressed state based on visibility
-            if (isHidden) {
-              infoButton.classList.add("pressed");
-              googleButton.style.display = "block";
-              
-              // Position the Google button correctly based on the current target
-              const activeTarget = document.querySelector("[mindar-image-target].active");
-              if (activeTarget) {
-                const videoPlane = activeTarget.querySelector("a-video");
-                const videoWorldPosition = new THREE.Vector3();
-                videoPlane.object3D.getWorldPosition(videoWorldPosition);
-                
-                // Update position in the next frame to ensure proper positioning
-                requestAnimationFrame(() => {
-                  const vector = videoWorldPosition.clone();
-                  vector.project(camera.children[0]);
-                  
-                  const widthHalf = window.innerWidth / 2;
-                  const heightHalf = window.innerHeight / 2;
-                  const x = (vector.x * widthHalf) + widthHalf;
-                  const y = -(vector.y * heightHalf) + heightHalf;
-                  
-                  googleButton.style.left = `${x}px`;
-                  googleButton.style.top = `${y}px`;
-                });
-              }
-              
-              // Close video when info button is pressed
-              videoPlane.setAttribute("visible", false);
-              videoEl.pause();
-              isAnimatePressed = false;
-              animateButton.classList.remove("pressed");
-            } else {
-              infoButton.classList.remove("pressed");
-              googleButton.style.display = "none";
-            }
-
-            console.log("Info button pressed, googleButton visible:", !isHidden);
           });
 
           this.tick = () => {
@@ -445,4 +359,69 @@
       });
     </script>
   </body>
+</html>
+
+// Move button event listeners outside the component, after the component registration
+document.addEventListener('DOMContentLoaded', function() {
+  const animateButton = document.querySelector("#animateButton");
+  const infoButton = document.querySelector("#infoButton");
+  const googleButton = document.querySelector("#googleButton");
+  const videoEl = document.querySelector("#video1");
+  
+  let isAnimatePressed = false;
+
+  // Animate Me button - controls video playback
+  animateButton.addEventListener("click", () => {
+    const activeTarget = document.querySelector("[mindar-image-target].active");
+    if (!activeTarget) return;
+    
+    const videoPlane = activeTarget.querySelector("a-video");
+    
+    // Toggle pressed state for color change
+    animateButton.classList.toggle("pressed");
+    
+    // Toggle video playback
+    isAnimatePressed = !isAnimatePressed;
+    
+    // Hide the "i" button when video is played
+    if (isAnimatePressed) {
+      googleButton.style.display = "none";
+      animateButton.classList.add("pressed");
+      videoPlane.setAttribute("visible", true);
+      videoEl.play().catch(e => console.warn("Autoplay blocked:", e));
+    } else {
+      animateButton.classList.remove("pressed");
+      videoPlane.setAttribute("visible", false);
+      videoEl.pause();
+    }
+
+    console.log("Animate button pressed, isAnimatePressed:", isAnimatePressed);
+  });
+
+  // Info button - controls "i" button visibility
+  infoButton.addEventListener("click", () => {
+    const activeTarget = document.querySelector("[mindar-image-target].active");
+    if (!activeTarget) return;
+    
+    const videoPlane = activeTarget.querySelector("a-video");
+    
+    // Toggle info button visibility
+    const isHidden = googleButton.style.display === "none" || googleButton.style.display === "";
+    
+    if (isHidden) {
+      infoButton.classList.add("pressed");
+      googleButton.style.display = "block";
+      
+      // Close video when info button is pressed
+      videoPlane.setAttribute("visible", false);
+      videoEl.pause();
+      isAnimatePressed = false;
+      animateButton.classList.remove("pressed");
+    } else {
+      infoButton.classList.remove("pressed");
+      googleButton.style.display = "none";
+    }
+
+    console.log("Info button pressed, googleButton visible:", !isHidden);
+  });
 </html>
