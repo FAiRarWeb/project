@@ -102,9 +102,6 @@
         font-size: 20px;
         font-weight: bold;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        position: fixed;
-        transform: translate(-50%, -50%);
-        z-index: 25;
       }
 
       .google-button:hover {
@@ -171,17 +168,6 @@
           visible="false"
         ></a-video>
       </a-entity>
-      <a-entity mindar-image-target="targetIndex: 1" videohandler>
-        <a-video
-          src="#video1"
-          position="0 0 0.01"
-          width="1"
-          height="0.45"
-          autoplay="false"
-          loop="true"
-          visible="false"
-        ></a-video>
-      </a-entity>
     </a-scene>
 
     <button id="animateButton" class="control-button animate-button">Animate Me</button>
@@ -200,6 +186,7 @@
 
           // Track states
           let deviceOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+          let isAnimatePressed = false;
           let isTargetFound = false;
           
           // EASY POSITION ADJUSTMENT - Change these values to reposition buttons
@@ -307,20 +294,28 @@
           // Initialize layout based on current orientation
           updateLayout(deviceOrientation);
           
+          const checkAndPlayVideo = () => {
+            if (isAnimatePressed && isTargetFound) {
+              console.log("Both conditions met - playing video");
+              videoPlane.setAttribute("visible", true);
+              videoEl.play().catch(e => console.warn("Autoplay blocked:", e));
+            } else {
+              videoPlane.setAttribute("visible", false);
+              videoEl.pause();
+            }
+          };
+
           this.el.addEventListener("targetFound", () => {
             console.log("Target found");
             isTargetFound = true;
-            
-            // Mark this target as active
-            const allTargets = document.querySelectorAll("[mindar-image-target]");
-            allTargets.forEach(target => target.classList.remove("active"));
-            this.el.classList.add("active");
-            
             animateButton.style.display = "block";
             infoButton.style.display = "block";
 
             // Apply current orientation when target is found
             updateLayout(deviceOrientation);
+
+            // Check if we should play video
+            checkAndPlayVideo();
           });
 
           this.el.addEventListener("targetLost", () => {
@@ -331,6 +326,55 @@
             animateButton.style.display = "none";
             infoButton.style.display = "none";
             googleButton.style.display = "none";
+
+            // Reset button state when target is lost
+            isAnimatePressed = false;
+          });
+
+          // Animate Me button - controls video playback
+          animateButton.addEventListener("click", () => {
+            // Toggle pressed state for color change
+            animateButton.classList.toggle("pressed");
+            
+            // Toggle video playback
+            isAnimatePressed = !isAnimatePressed;
+            
+            // Hide the "i" button when video is played
+            if (isAnimatePressed) {
+              googleButton.style.display = "none";
+              // Keep the pressed state when video is playing
+              animateButton.classList.add("pressed");
+            } else {
+              // Remove pressed state when video is stopped
+              animateButton.classList.remove("pressed");
+            }
+            
+            checkAndPlayVideo();
+
+            console.log("Animate button pressed, isAnimatePressed:", isAnimatePressed);
+          });
+
+          // Info button - controls "i" button visibility and closes video
+          infoButton.addEventListener("click", () => {
+            // Toggle info button visibility
+            const isHidden = googleButton.style.display === "none" || googleButton.style.display === "";
+            
+            // Toggle pressed state based on visibility
+            if (isHidden) {
+              infoButton.classList.add("pressed");
+              googleButton.style.display = "block";
+              
+              // Close video when info button is pressed
+              videoPlane.setAttribute("visible", false);
+              videoEl.pause();
+              isAnimatePressed = false;
+              animateButton.classList.remove("pressed");
+            } else {
+              infoButton.classList.remove("pressed");
+              googleButton.style.display = "none";
+            }
+
+            console.log("Info button pressed, googleButton visible:", !isHidden);
           });
 
           this.tick = () => {
@@ -362,77 +406,4 @@
       });
     </script>
   </body>
-</html>
-
-// Move button event listeners outside the component, after the component registration
-document.addEventListener('DOMContentLoaded', function() {
-  const animateButton = document.querySelector("#animateButton");
-  const infoButton = document.querySelector("#infoButton");
-  const googleButton = document.querySelector("#googleButton");
-  const videoEl = document.querySelector("#video1");
-  
-  let isAnimatePressed = false;
-
-  // Animate Me button - controls video playback
-  animateButton.addEventListener("click", () => {
-    const activeTarget = document.querySelector("[mindar-image-target].active");
-    if (!activeTarget) return;
-    
-    const videoPlane = activeTarget.querySelector("a-video");
-    
-    // Toggle pressed state for color change
-    animateButton.classList.toggle("pressed");
-    
-    // Toggle video playback
-    isAnimatePressed = !isAnimatePressed;
-    
-    // Hide the "i" button when video is played
-    if (isAnimatePressed) {
-      googleButton.style.display = "none";
-      animateButton.classList.add("pressed");
-      videoPlane.setAttribute("visible", true);
-      videoEl.play().catch(e => console.warn("Autoplay blocked:", e));
-    } else {
-      animateButton.classList.remove("pressed");
-      videoPlane.setAttribute("visible", false);
-      videoEl.pause();
-    }
-
-    console.log("Animate button pressed, isAnimatePressed:", isAnimatePressed);
-  });
-
-  // Info button - controls "i" button visibility
-  infoButton.addEventListener("click", () => {
-    console.log("Info button clicked"); // Debug log
-    
-    const activeTarget = document.querySelector("[mindar-image-target].active");
-    console.log("Active target:", activeTarget); // Debug log
-    
-    if (!activeTarget) {
-      console.log("No active target found");
-      return;
-    }
-    
-    const videoPlane = activeTarget.querySelector("a-video");
-    
-    // Toggle info button visibility
-    const isHidden = googleButton.style.display === "none" || googleButton.style.display === "";
-    console.log("Google button is hidden:", isHidden); // Debug log
-    
-    if (isHidden) {
-      infoButton.classList.add("pressed");
-      googleButton.style.display = "block";
-      console.log("Showing Google button");
-      
-      // Close video when info button is pressed
-      videoPlane.setAttribute("visible", false);
-      videoEl.pause();
-      isAnimatePressed = false;
-      animateButton.classList.remove("pressed");
-    } else {
-      infoButton.classList.remove("pressed");
-      googleButton.style.display = "none";
-      console.log("Hiding Google button");
-    }
-  });
 </html>
