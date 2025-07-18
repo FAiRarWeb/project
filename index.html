@@ -72,7 +72,7 @@
       }
 
       .info-button {
-        bottom: 80px; /* Position above the animate button */
+        bottom: 80px;
         right: 20px;
       }
 
@@ -110,7 +110,6 @@
         box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
       }
 
-      /* Add specific landscape orientation styles */
       @media (orientation: landscape) {
         .animate-button {
           bottom: 20px;
@@ -119,11 +118,10 @@
         
         .info-button {
           bottom: 20px;
-          right: 100px; /* Reduced from 180px to be closer in landscape */
+          right: 100px;
         }
       }
 
-      /* Keep portrait orientation styles */
       @media (orientation: portrait) {
         .animate-button {
           bottom: 20px;
@@ -131,7 +129,7 @@
         }
         
         .info-button {
-          bottom: 80px; /* Position above the animate button in portrait */
+          bottom: 80px;
           right: 20px;
         }
       }
@@ -187,6 +185,11 @@
     <button id="googleButton" class="google-button" onclick="window.open('https://www.google.com', '_blank')">i</button>
 
     <script>
+      // Global state tracking
+      window.targetStates = {};
+      window.isAnimatePressed = false;
+      window.currentVideoPlane = null;
+
       AFRAME.registerComponent("videohandler", {
         init: function () {
           const videoEl = document.querySelector("#video1");
@@ -195,16 +198,13 @@
           const googleButton = document.querySelector("#googleButton");
           const camera = document.querySelector("a-camera").object3D;
 
-          // Track states globally (shared across all targets)
           let deviceOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
-          let isAnimatePressed = false;
-          let anyTargetFound = false;
-          let currentVideoPlane = null;
-          
-          // Get this specific target's video plane
           const thisVideoPlane = this.el.querySelector("a-video");
+          const targetIndex = this.el.getAttribute("mindar-image-target").targetIndex;
           
-          // EASY POSITION ADJUSTMENT - Change these values to reposition buttons
+          // Initialize this target's state
+          window.targetStates[targetIndex] = false;
+
           const PORTRAIT = {
             animateButton: { bottom: "20px", right: "20px" },
             infoButton: { bottom: "80px", right: "20px" }
@@ -214,31 +214,24 @@
             animateButton: { bottom: "10%", right: "66%" },
             infoButton: { bottom: "6%", right: "60%" }
           };
-          
-          // Only set up event listeners once (for the first target)
+
           if (!window.videoHandlerInitialized) {
             window.videoHandlerInitialized = true;
             
             const updateLayout = (orientation) => {
-              console.log("Device orientation:", orientation);
-              
               if (orientation === 'landscape') {
                 animateButton.style.bottom = LANDSCAPE.animateButton.bottom;
                 animateButton.style.right = LANDSCAPE.animateButton.right;
-                animateButton.style.transformOrigin = "center center";
                 animateButton.style.transform = "rotate(90deg)";
                 
                 infoButton.style.bottom = LANDSCAPE.infoButton.bottom;
                 infoButton.style.right = LANDSCAPE.infoButton.right;
-                infoButton.style.transformOrigin = "center center";
                 infoButton.style.transform = "rotate(90deg)";
               } else {
-                animateButton.style.transformOrigin = "center center";
                 animateButton.style.transform = "rotate(0deg)";
                 animateButton.style.bottom = PORTRAIT.animateButton.bottom;
                 animateButton.style.right = PORTRAIT.animateButton.right;
                 
-                infoButton.style.transformOrigin = "center center";
                 infoButton.style.transform = "rotate(0deg)";
                 infoButton.style.bottom = PORTRAIT.infoButton.bottom;
                 infoButton.style.right = PORTRAIT.infoButton.right;
@@ -249,8 +242,7 @@
                 googleButton.style.transform = `translate(-50%, -50%) scale(1) ${rotation}`;
               }
             };
-            
-            // Device orientation detection
+
             window.addEventListener("deviceorientation", (event) => {
               const gamma = Math.abs(event.gamma);
               const newOrientation = (gamma > 45 && gamma < 135) ? 'landscape' : 'portrait';
@@ -278,14 +270,14 @@
             });
             
             updateLayout(deviceOrientation);
-            
+
             const checkAndPlayVideo = () => {
-              if (isAnimatePressed && anyTargetFound && currentVideoPlane) {
-                console.log("Both conditions met - playing video");
-                currentVideoPlane.setAttribute("visible", true);
+              const anyTargetFound = Object.values(window.targetStates).some(state => state);
+              
+              if (window.isAnimatePressed && anyTargetFound && window.currentVideoPlane) {
+                window.currentVideoPlane.setAttribute("visible", true);
                 videoEl.play().catch(e => console.warn("Autoplay blocked:", e));
               } else {
-                // Hide all video planes
                 document.querySelectorAll("a-video").forEach(plane => {
                   plane.setAttribute("visible", false);
                 });
@@ -293,12 +285,10 @@
               }
             };
 
-            // Animate Me button
             animateButton.addEventListener("click", () => {
-              animateButton.classList.toggle("pressed");
-              isAnimatePressed = !isAnimatePressed;
+              window.isAnimatePressed = !window.isAnimatePressed;
               
-              if (isAnimatePressed) {
+              if (window.isAnimatePressed) {
                 googleButton.style.display = "none";
                 animateButton.classList.add("pressed");
               } else {
@@ -306,10 +296,8 @@
               }
               
               checkAndPlayVideo();
-              console.log("Animate button pressed, isAnimatePressed:", isAnimatePressed);
             });
 
-            // Info button
             infoButton.addEventListener("click", () => {
               const isHidden = googleButton.style.display === "none" || googleButton.style.display === "";
               
@@ -317,78 +305,66 @@
                 infoButton.classList.add("pressed");
                 googleButton.style.display = "block";
                 
-                // Close video when info button is pressed
                 document.querySelectorAll("a-video").forEach(plane => {
                   plane.setAttribute("visible", false);
                 });
                 videoEl.pause();
-                isAnimatePressed = false;
+                window.isAnimatePressed = false;
                 animateButton.classList.remove("pressed");
               } else {
                 infoButton.classList.remove("pressed");
                 googleButton.style.display = "none";
               }
-
-              console.log("Info button pressed, googleButton visible:", !isHidden);
             });
           }
 
           this.el.addEventListener("targetFound", () => {
-            console.log("Target found");
-            anyTargetFound = true;
-            currentVideoPlane = thisVideoPlane;
+            window.targetStates[targetIndex] = true;
+            window.currentVideoPlane = thisVideoPlane;
             animateButton.style.display = "block";
             infoButton.style.display = "block";
 
-            // Apply current orientation when target is found
-            if (window.videoHandlerInitialized) {
-              const updateLayout = window.updateLayoutFunction || (() => {});
-              updateLayout(deviceOrientation);
-            }
-
-            // Check if we should play video
-            if (isAnimatePressed) {
+            if (window.isAnimatePressed) {
               thisVideoPlane.setAttribute("visible", true);
               videoEl.play().catch(e => console.warn("Autoplay blocked:", e));
             }
           });
 
           this.el.addEventListener("targetLost", () => {
-            console.log("Target lost");
+            window.targetStates[targetIndex] = false;
+            thisVideoPlane.setAttribute("visible", false);
             
             // Check if any other targets are still found
-            const allTargets = document.querySelectorAll("[mindar-image-target]");
-            let otherTargetFound = false;
+            const anyTargetFound = Object.values(window.targetStates).some(state => state);
             
-            allTargets.forEach(target => {
-              if (target !== this.el && target.is("targetFound")) {
-                otherTargetFound = true;
-                currentVideoPlane = target.querySelector("a-video");
-              }
-            });
-            
-            if (!otherTargetFound) {
-              anyTargetFound = false;
-              currentVideoPlane = null;
+            if (!anyTargetFound) {
+              window.currentVideoPlane = null;
               videoEl.pause();
-              thisVideoPlane.setAttribute("visible", false);
               animateButton.style.display = "none";
               infoButton.style.display = "none";
               googleButton.style.display = "none";
-              isAnimatePressed = false;
+              window.isAnimatePressed = false;
               animateButton.classList.remove("pressed");
               infoButton.classList.remove("pressed");
             } else {
-              // Just hide this target's video
-              thisVideoPlane.setAttribute("visible", false);
+              // Find another active target
+              for (let i in window.targetStates) {
+                if (window.targetStates[i]) {
+                  const activeTarget = document.querySelector(`[mindar-image-target="targetIndex: ${i}"]`);
+                  if (activeTarget) {
+                    window.currentVideoPlane = activeTarget.querySelector("a-video");
+                    break;
+                  }
+                }
+              }
             }
           });
 
           this.tick = () => {
-            if (googleButton.style.display !== "block" || !anyTargetFound || !currentVideoPlane) return;
+            if (googleButton.style.display !== "block" || !window.currentVideoPlane) return;
 
             const videoWorldPosition = new THREE.Vector3();
-            currentVideoPlane.object3D.getWorldPosition(videoWorldPosition);
+            window.currentVideoPlane.object3D.getWorldPosition(videoWorldPosition);
 
             const vector = videoWorldPosition.clone();
             vector.project(camera.children[0]);
