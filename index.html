@@ -189,6 +189,7 @@
       window.targetStates = {};
       window.isAnimatePressed = false;
       window.currentVideoPlane = null;
+      window.deviceOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
 
       AFRAME.registerComponent("videohandler", {
         init: function () {
@@ -198,7 +199,6 @@
           const googleButton = document.querySelector("#googleButton");
           const camera = document.querySelector("a-camera").object3D;
 
-          let deviceOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
           const thisVideoPlane = this.el.querySelector("a-video");
           const targetIndex = this.el.getAttribute("mindar-image-target").targetIndex;
           
@@ -219,6 +219,8 @@
             window.videoHandlerInitialized = true;
             
             const updateLayout = (orientation) => {
+              window.deviceOrientation = orientation;
+              
               if (orientation === 'landscape') {
                 animateButton.style.bottom = LANDSCAPE.animateButton.bottom;
                 animateButton.style.right = LANDSCAPE.animateButton.right;
@@ -247,29 +249,26 @@
               const gamma = Math.abs(event.gamma);
               const newOrientation = (gamma > 45 && gamma < 135) ? 'landscape' : 'portrait';
               
-              if (newOrientation !== deviceOrientation) {
-                deviceOrientation = newOrientation;
-                updateLayout(deviceOrientation);
+              if (newOrientation !== window.deviceOrientation) {
+                updateLayout(newOrientation);
               }
             }, true);
             
             window.addEventListener('resize', () => {
               const newOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
-              if (newOrientation !== deviceOrientation) {
-                deviceOrientation = newOrientation;
-                updateLayout(deviceOrientation);
+              if (newOrientation !== window.deviceOrientation) {
+                updateLayout(newOrientation);
               }
             });
 
             window.addEventListener('orientationchange', () => {
               setTimeout(() => {
                 const newOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
-                deviceOrientation = newOrientation;
-                updateLayout(deviceOrientation);
+                updateLayout(newOrientation);
               }, 100);
             });
             
-            updateLayout(deviceOrientation);
+            updateLayout(window.deviceOrientation);
 
             const checkAndPlayVideo = () => {
               const anyTargetFound = Object.values(window.targetStates).some(state => state);
@@ -380,7 +379,7 @@
             googleButton.style.left = `${x}px`;
             googleButton.style.top = `${y}px`;
 
-            const rotation = deviceOrientation === 'landscape' ? 'rotate(90deg)' : 'rotate(0deg)';
+            const rotation = window.deviceOrientation === 'landscape' ? 'rotate(90deg)' : 'rotate(0deg)';
             googleButton.style.transform = `translate(-50%, -50%) scale(${scaleFactor}) ${rotation}`;
           };
         },
