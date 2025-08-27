@@ -1,460 +1,451 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Interactive Mural</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --text:#ffffff;
-    --muted:#e9e9e9;
-    --shadow: rgba(0,0,0,.55);
-    --btn-bg: rgba(255,255,255,.1);
-    --btn-border: #ffffff;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  html{scroll-behavior:smooth}
-  body{
-    margin:0;
-    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
-    color:var(--text);
-    background:#111;
-  }
+  <head>
+    <meta charset="UTF-8" />
+    <title>MindAR AR Responsive</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 
-  /* Layout */
-  .hero{
-    position:relative;
-    min-height:100dvh;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:flex-start;
-    overflow:hidden;
-    padding:24px 16px 48px;
-  }
+    <!-- Libraries -->
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
-  .hero::before{
-    content:"";
-    position:fixed;inset:0;
-    background:url("https://FAiRarWeb.github.io/project/bg.png") center/cover no-repeat;
-    filter:brightness(.7);
-    z-index:-2;
-  }
-  .hero::after {
-    content:"";
-    position:fixed; /* instead of absolute */
-    top:0; left:0; right:0; bottom:0; /* cover full screen */
-    background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.55) 40%, rgba(0,0,0,.8) 100%);
-    z-index:-1;
-  }
-
-
-  /* Top bar */
-  .topbar{
-    width:100%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    position:fixed; top:16px; left:0; right:0; z-index:3;
-    padding:0 16px;
-  }
-  .logo{
-    display:flex;flex-direction:row;align-items:center;justify-content:center;
-    line-height:1;
-    transition:transform .45s cubic-bezier(.22,.61,.36,1);
-    gap: 12px;
-  }
-  .logo-mark{
-    width:48px;height:48px;border-radius:50%;
-    display:grid;place-items:center;
-    background:radial-gradient(ellipse at 50% 35%, #f6d58e 0 40%, #c38b2e 41% 100%);
-    color:#3b2b10;font-weight:800;font-size:20px;
-    box-shadow:0 6px 16px rgba(0,0,0,.35);
-  }
-  .logo-text{margin-top:8px; text-align:center}
-  .logo-title{font-family:"Playfair Display", serif; font-weight:800; letter-spacing:.06em; font-size:14px}
-  .logo-sub{opacity:.8; font-size:10px; letter-spacing:.25em}
-  
-  .logo-img {
-    height: 40px;
-    width: auto;
-    object-fit: contain;
-  }
-
-  /* Headline area */
-  .content{margin-top:26dvh; text-align:center; padding:0 6px}
-  .headline-image{
-    max-width: 100%;
-    height: auto;
-    max-height: 120px;
-    margin-bottom: 16px;
-    margin-left: 20px;
-    filter: drop-shadow(0 2px 0 rgba(0,0,0,.15)) drop-shadow(0 6px 16px var(--shadow));
-  }
-  .headline{
-    font-family:"Playfair Display", serif;
-    font-weight:800;
-    font-size:36px;
-    line-height:1.05;
-    text-shadow:0 2px 0 rgba(0,0,0,.15), 0 6px 16px var(--shadow);
-  }
-  .subtext{
-    margin:16px auto 24px;
-    max-width:30ch;
-    font-size:14px;
-    color:var(--muted);
-    text-shadow:0 2px 8px var(--shadow);
-  }
-  .cta-btn{
-    appearance:none;
-    border:2px solid var(--btn-border);
-    background:var(--btn-bg);
-    color:#fff;
-    padding:12px 24px;
-    border-radius:10px;
-    font-weight:600;
-    font-size:14px;
-    backdrop-filter: blur(6px);
-    box-shadow:0 6px 18px rgba(0,0,0,.35);
-    text-decoration:none;
-    display:inline-block;
-    transition:transform .3s ease;
-    min-height: 44px; /* Better touch target */
-    min-width: 120px; /* Minimum width for better touch */
-    cursor: pointer;
-    user-select: none;
-  }
-  .cta-btn:active{transform:translateY(1px)}
-  .cta-btn:hover{transform:translateY(-1px); box-shadow:0 8px 20px rgba(0,0,0,.4)}
-
-  .instructions-cta {
-    display: flex;
-    gap: 16px;
-    justify-content: center;
-    align-items: center;
-    margin-top: 32px;
-    flex-wrap: wrap;
-    width: 100%;
-  }
-
-  .instructions-cta .cta-btn {
-    margin: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .try-me-btn {
-    background: #8b4513 !important;
-    border-color: #8b4513 !important;
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-    pointer-events: auto !important;
-  }
-
-  .try-me-btn:hover {
-    background: #a0522d !important;
-    border-color: #a0522d !important;
-  }
-
-  /* Instructions section */
-  .instructions-section{background:#f6efe7;color:#1a1a1a; position:relative;  min-height:80vh;}
-  .instructions-wrap{max-width:1080px;margin:0 auto;padding:32px 16px;position:relative}
-  .title-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-  }
-
-  .instructions-title{font-family:"Playfair Display", serif;font-weight:800;font-size:28px;margin:0}
-  .menu-grid {
-    display: flex;
-    justify-content: center;  /* center horizontally */
-    gap: 20px;                /* spacing between cards */
-    flex-wrap: wrap;          /* allow wrapping on small screens */
-  }
-
-  .card {
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 6px 16px rgba(0,0,0,.08);
-    padding: 14px;
-    width: 200px; /* fixed width so they align neatly */
-    text-align: center;
-  }
-
-  .instructions-list {
-    max-width: 600px;
-    margin: 0 auto 32px;
-    padding: 0;
-    list-style: none;
-    counter-reset: instruction-counter;
-  }
-
-  .instructions-list li {
-    counter-increment: instruction-counter;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 6px 16px rgba(0,0,0,.08);
-    padding: 20px 20px 20px 44px; /* add left padding for gap from number */
-    margin-bottom: 16px;
-    position: relative;
-    font-size: 16px;
-    line-height: 1.5;
-    color: #1a1a1a;
-  }
-
-  .instructions-list li::before {
-    content: counter(instruction-counter);
-    position: absolute;
-    left: 8px; /* move number right to create clearer gap */
-    top: 50%;
-    transform: translateY(-50%);
-    background: #8b4513;
-    color: white;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 14px;
-    box-shadow: 0 4px 8px rgba(0,0,0,.2);
-  }
-
-  .instructions-list li strong {
-    color: #8b4513;
-    font-weight: 600;
-  }
-
-  .attention{
-    max-width: 600px;
-    margin: 8px auto 24px;
-    color:#d32f2f; /* red */
-    font-weight:600;
-    font-size:14px;
-    text-align:center;
-  }
-
-  .language-toggle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .lang-btn {
-    background: none;
-    border: none;
-    padding: 4px 8px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #666;
-    cursor: pointer;
-    transition: color 0.3s ease;
-    font-family: inherit;
-  }
-
-  .lang-btn.active {
-    color: #8b4513;
-  }
-
-  .lang-btn:hover:not(.active) {
-    color: #8b4513;
-  }
-
-  .lang-separator {
-    color: #ccc;
-    font-weight: 400;
-  }
-
-
-  /* On scroll */
-  body.scrolled .logo{
-    transform:translateX(calc(-50vw + 200px)) scale(.8);
-    opacity: 0.9;
-  }
-  body.scrolled .headline-image,
-  body.scrolled .headline,
-  body.scrolled .subtext,
-  body.scrolled .cta-btn:not(.try-me-btn){
-    opacity:0; 
-    transform:translateY(-24px); 
-    pointer-events:none;
-    transition: opacity 0.1s ease, transform 0.3s ease;
-  }
-  
-  /* Initial state with fade-in animation */
-  .headline,
-  .subtext,
-  .cta-btn:not(.try-me-btn) {
-    opacity: 1;
-    transform: translateY(0);
-    transition: opacity 0.6s ease, transform 0.6s ease;
-  }
-  
-  /* Staggered fade animation on scroll */
-  body.scrolled .headline {
-    transition-delay: 0.05s;
-  }
-  
-  body.scrolled .subtext {
-    transition-delay: 0.1s;
-  }
-  
-  body.scrolled .cta-btn:not(.try-me-btn) {
-    transition-delay: 0.2s;
-  }
-
-  /* -------- RESPONSIVE QUERIES -------- */
-  /* Landscape phones */
-  @media (orientation: landscape) and (max-width: 900px){
-    .topbar {
-      justify-content: flex-start; /* Move logo to the left */
-      padding-left: 20px; /* Add some padding from the edge */
-    }
-    .content{margin-top:12dvh;} /* bring content much higher in landscape */
-    .headline-image{
-      max-height: 70px;
-      margin-top: 30px;/* smaller image in landscape */
-      margin-bottom: 1px;
-    }
-    .headline{font-size:25px; margin-bottom: 6px} /* smaller headline */
-    .subtext{font-size:10px; max-width:30ch; margin: 8px auto 12px} /* smaller subtext */
-    .cta-btn{padding:10px 20px; font-size:13px}
-    .menu-grid{grid-template-columns:repeat(3,1fr)}
-    .hero{padding:16px 12px 24px} /* reduce padding to fit more content */
-    
-    /* Hide logo when scrolled in landscape mode */
-    body.scrolled .topbar {
-      display: none;
-    }
-  }
-
-  /* Tablets and small desktops */
-  @media (min-width:768px){
-    .hero{max-width:720px;margin:0 auto; border-radius:0px; border:0px solid #0d0d0d}
-    .headline{font-size:48px}
-    .subtext{font-size:18px}
-    .menu-title{font-size:32px}
-    .card h3{font-size:16px}
-    .card p{font-size:14px}
-  }
-
-  /* Large desktop */
-  @media (min-width:1200px){
-    .hero{max-width:1100px;}
-    .headline{font-size:64px}
-    .subtext{font-size:20px; max-width:55ch}
-    .menu-grid{grid-template-columns:repeat(4,1fr)}
-    .menu-wrap{padding:48px 24px}
-  }
-
-  /* Additional landscape optimizations for better button accessibility */
-  @media (orientation: landscape) and (max-height: 500px){
-    .content{margin-top:8dvh;}
-    .headline{font-size:28px}
-    .subtext{font-size:13px; margin: 8px auto 12px}
-    .cta-btn{padding:8px 16px; font-size:12px; margin-top: 8px}
-    .hero{padding:12px 8px 16px}
-  }
-</style>
-</head>
-<body>
-  <main class="hero" id="top">
-    <header class="topbar">
-      <div class="logo" aria-label="Interactive Mural">
-        <img src="https://FAiRarWeb.github.io/project/cc.png" alt="Logo 1" class="logo-img">
-        <img src="https://FAiRarWeb.github.io/project/FCSIT.png" alt="Logo 2" class="logo-img">
-      </div>
-    </header>
-
-    <section class="content" aria-label="Headline">
-      <img src="https://FAiRarWeb.github.io/project/fair.png" alt="Warmth in Every Cup" class="headline-image">
-      <p class="subtext">Interactive Mural</p>
-      <p class="subtext">“Where art meets algorithm and every wall comes alive.”</p>
-      <a class="cta-btn" href="#instructions">View Instructions</a>
-    </section>
-  </main>
-
-  <section id="instructions" class="instructions-section" aria-label="Instructions">
-    <div class="instructions-wrap">
-      <div class="title-row">
-        <h2 class="instructions-title">Instructions</h2>
-        <div class="language-toggle">
-          <button class="lang-btn active" data-lang="eng">ENG</button>
-          <span class="lang-separator">|</span>
-          <button class="lang-btn" data-lang="bm">BM</button>
-        </div>
-      </div>
-      <ol class="instructions-list">
-        <li>Make sure auto-rotate on your phone is ON.</li>
-        <li>Rotate your phone and scan the mural.</li>
-        <li>Press "Animate Me" to animate the mural and press "Info" for information.</li>
-      </ol>
-      <p class="attention" id="attention-text">!Attention: If the button does not appear, please refresh the page.</p>
-
-      <div class="instructions-cta">
-        <a class="cta-btn wide try-me-btn" href="https://FAiRarWeb.github.io/project/ar.html">Try Me!</a>
-      </div>
-    </div>
-  </section>
-
-  <script>
-    // Toggle 'scrolled' on body when user scrolls past threshold
-    const onScroll = () => {
-      const threshold = 10; // Increased threshold to keep logo visible longer
-      document.body.classList.toggle('scrolled', window.scrollY > threshold);
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-
-    // Language toggle functionality
-    const langButtons = document.querySelectorAll('.lang-btn');
-    const translations = {
-      eng: {
-        title: 'Instructions',
-        s1: 'Make sure auto-rotate on your phone is ON.',
-        s2: 'Rotate your phone and scan the mural.',
-        s3: 'Press "Animate Me" to animate the mural and press "Info" for information.',
-        attention: '!Attention: If the button does not appear, please refresh the page.'
-      },
-      bm: {
-        title: 'Arahan',
-        s1: 'Pastikan auto-putar pada telefon anda HIDUP.',
-        s2: 'Putar telefon anda dan imbas mural.',
-        s3: 'Tekan "Animate Me" untuk animasikan mural dan tekan "Info" untuk maklumat lanjut.',
-        attention: '!Perhatian: Jika pilihan tidak muncul, sila muat semula halaman.'
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: black;
+        position: fixed;
+        top: 0;
+        left: 0;
       }
-    };
 
-    langButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        const selectedLang = button.dataset.lang;
-        
-        // Update active button
-        langButtons.forEach(btn => btn.classList.remove('active'));
-        button.classList.add('active');
-        
-        // Update content
-        const title = document.querySelector('.instructions-title');
-        const listItems = document.querySelectorAll('.instructions-list li');
-        const attentionEl = document.getElementById('attention-text');
-        
-        title.textContent = translations[selectedLang].title;
-        
-        listItems[0].textContent = translations[selectedLang].s1;
-        listItems[1].textContent = translations[selectedLang].s2;
-        listItems[2].textContent = translations[selectedLang].s3;
-        if (attentionEl) attentionEl.textContent = translations[selectedLang].attention;
+      /* Force landscape orientation */
+      @media screen and (orientation: portrait) {
+        body::before {
+          content: "Please rotate your device to landscape mode for the best AR experience";
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(135deg, #8d6e63 0%, #4e342e 100%);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 20px;
+          font-family: 'Arial', sans-serif;
+          font-weight: 300;
+          text-align: center;
+          z-index: 9999;
+          padding: 40px;
+          box-sizing: border-box;
+          letter-spacing: 0.5px;
+          line-height: 1.4;
+        }
+
+        a-scene {
+          display: none !important;
+        }
+
+        .control-button, .info-link-button {
+          display: none !important;
+        }
+      }
+
+      @media screen and (orientation: landscape) {
+        a-scene {
+          display: block !important;
+        }
+      }
+
+      a-scene {
+        width: 100% !important;
+        height: 100% !important;
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        margin: 0;
+        padding: 0;
+      }
+
+      .a-enter-vr {
+        display: none !important;
+      }
+
+      .control-button, .info-link-button {
+        position: absolute;
+        z-index: 20;
+        font-weight: bold;
+        cursor: pointer;
+        transform-origin: center;
+        transition: all 0.3s ease;
+      }
+
+      .control-button {
+        background-color: rgba(141, 110, 99, 0.9);
+        border-radius: 8px;
+        padding: 10px 15px;
+        display: none;
+        border: none;
+        font-size: 16px;
+        color: white;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-align: center;
+        white-space: nowrap;
+      }
+
+      .animate-button {
+        bottom: 20px;
+        right: 20px;
+      }
+
+      .info-button {
+        bottom: 80px;
+        right: 20px;
+      }
+
+      .control-button:hover {
+        background-color: rgba(141, 110, 99, 1);
+        transform: scale(1.1) translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      .control-button:active {
+        transform: scale(0.95);
+      }
+
+      .control-button.pressed {
+        background-color: #4e342e;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Camera recording frame border - corner brackets only */
+      body::after {
+        content: "";
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        width: 50%;
+        height: 65%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        z-index: 15;
+        border: none;
+        background: 
+          linear-gradient(to right, #ffffff 0%, #ffffff 40px, transparent 40px),
+          linear-gradient(to bottom, #ffffff 0%, #ffffff 40px, transparent 40px),
+          linear-gradient(to left, #ffffff 0%, #ffffff 40px, transparent 40px),
+          linear-gradient(to bottom, #ffffff 0%, #ffffff 40px, transparent 40px),
+          linear-gradient(to right, #ffffff 0%, #ffffff 40px, transparent 40px),
+          linear-gradient(to top, #ffffff 0%, #ffffff 40px, transparent 40px),
+          linear-gradient(to left, #ffffff 0%, #ffffff 40px, transparent 40px),
+          linear-gradient(to top, #ffffff 0%, #ffffff 40px, transparent 40px);
+        background-size: 
+          40px 6px, 6px 40px,
+          40px 6px, 6px 40px,
+          40px 6px, 6px 40px,
+          40px 6px, 6px 40px;
+        background-position: 
+          0 0, 0 0,
+          100% 0, 100% 0,
+          0 100%, 0 100%,
+          100% 100%, 100% 100%;
+        background-repeat: no-repeat;
+        animation: recordingPulse 2s infinite;
+      }
+
+      @keyframes recordingPulse {
+        0%, 100% { opacity: 0.8; }
+        50% { opacity: 1; }
+      }
+
+      .info-link-button {
+        background: transparent;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        width: 150px;
+        height: 150px;
+        display: none;
+        font-size: 20px;
+        font-weight: bold;
+        overflow: hidden;
+        padding: 0;
+        position: fixed;
+        top: 25px;
+        left: 25px;
+      }
+
+             .info-link-button img {
+         width: 100%;
+         height: 100%;
+         object-fit: contain;
+       }
+
+       /* Special styling for target 2 link button */
+       .info-link-button.target-2 {
+         width: 148px;
+         height: 148px;
+       }
+    </style>
+  </head>
+
+  <body>
+    <a-scene
+      mindar-image="imageTargetSrc: https://FAiRarWeb.github.io/project/targets5.mind;
+                    uiScanning: true;
+                    filterMinCF: 0.0005;
+                    filterBeta: 0.01;
+                    missTolerance: 8;
+                    warmupTolerance: 2;"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
+      renderer="precision: high; antialias: true"
+      embedded
+    >
+      <a-assets>
+        <video id="video1" src="https://FAiRarWeb.github.io/project/videoAR3.mp4" preload="auto" loop crossorigin="anonymous"></video>
+      </a-assets>
+
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+      <a-entity mindar-image-target="targetIndex: 0" videohandler>
+        <a-video src="#video1" position="0 0 0.01" width="1" height="0.45" autoplay="false" loop="true" visible="false" 
+                 material="shader: flat; transparent: true; opacity: 0.9"
+                 geometry="primitive: plane; width: 1; height: 0.45"></a-video>
+      </a-entity>
+
+      <a-entity mindar-image-target="targetIndex: 1" videohandler>
+        <a-video src="#video1" position="0 0 0.01" width="1" height="0.45" autoplay="false" loop="true" visible="false"
+                 material="shader: flat; transparent: true; opacity: 0.9"
+                 geometry="primitive: plane; width: 1; height: 0.45"></a-video>
+      </a-entity>
+
+      <a-entity mindar-image-target="targetIndex: 2" videohandler>
+        <a-video src="#video1" position="0 0 0.01" width="1" height="0.45" autoplay="false" loop="true" visible="false"
+                 material="shader: flat; transparent: true; opacity: 0.9"
+                 geometry="primitive: plane; width: 1; height: 0.50"></a-video>
+      </a-entity>
+    </a-scene>
+
+    <!-- Buttons -->
+    <button id="animateButton" class="control-button animate-button">Animate Me</button>
+    <button id="infoButton" class="control-button info-button">Info</button>
+    <button id="infoLinkButton" class="info-link-button" onclick="window.open('https://creativeculture.my/fair/', '_blank')">
+      <img src="https://FAiRarWeb.github.io/project/button.png" alt="Info" />
+    </button>
+
+    <script>
+      // Force landscape orientation and disable AR in portrait
+      let isLandscape = window.innerWidth > window.innerHeight;
+
+      function checkOrientation() {
+        const newIsLandscape = window.innerWidth > window.innerHeight;
+        if (newIsLandscape !== isLandscape) {
+          isLandscape = newIsLandscape;
+          if (!isLandscape) {
+            document.querySelectorAll("a-video").forEach(p => p.setAttribute("visible", false));
+            document.querySelector("#video1").pause();
+            document.querySelector("#animateButton").style.display = "none";
+            document.querySelector("#infoButton").style.display = "none";
+            const infoLinkBtn = document.querySelector("#infoLinkButton");
+            if (infoLinkBtn) infoLinkBtn.style.display = "none";
+
+            const sceneEl = document.querySelector('a-scene');
+            const mindarSystem = sceneEl && sceneEl.systems && (sceneEl.systems['mindar-image-system'] || sceneEl.systems['mindar-image']);
+            if (mindarSystem && typeof mindarSystem.stop === 'function') {
+              try { mindarSystem.stop(); } catch (e) { console.warn('MindAR stop failed:', e); }
+            }
+          } else {
+            // Switched to landscape: ensure renderer resizes and AR restarts
+            const sceneEl = document.querySelector('a-scene');
+            if (sceneEl) {
+              try { sceneEl.resize && sceneEl.resize(); } catch (_) {}
+            }
+            try { window.dispatchEvent(new Event('resize')); } catch (_) {}
+            const mindarSystem = sceneEl && sceneEl.systems && (sceneEl.systems['mindar-image-system'] || sceneEl.systems['mindar-image']);
+            if (mindarSystem && typeof mindarSystem.start === 'function') {
+              try { mindarSystem.start(); } catch (e) { console.warn('MindAR start failed:', e); }
+            }
+          }
+        }
+      }
+
+      window.addEventListener('orientationchange', checkOrientation);
+      window.addEventListener('resize', checkOrientation);
+
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(err => {
+          console.log('Orientation lock not supported:', err);
+        });
+      }
+
+      window.targetStates = {};
+      window.isAnimatePressed = false;
+      window.currentVideoPlane = null;
+
+      AFRAME.registerComponent("videohandler", {
+        init: function () {
+          const videoEl = document.querySelector("#video1");
+          const animateButton = document.querySelector("#animateButton");
+          const infoButton = document.querySelector("#infoButton");
+          const infoLinkButton = document.querySelector("#infoLinkButton");
+          const thisVideoPlane = this.el.querySelector("a-video");
+          const targetIndex = this.el.getAttribute("mindar-image-target").targetIndex;
+
+          window.targetStates[targetIndex] = false;
+
+          if (!window.videoHandlerInitialized) {
+            window.videoHandlerInitialized = true;
+
+            const checkAndPlayVideo = () => {
+              const anyTargetFound = Object.values(window.targetStates).some(state => state);
+              if (window.isAnimatePressed && anyTargetFound && window.currentVideoPlane) {
+                window.currentVideoPlane.setAttribute("visible", true);
+                videoEl.play().catch(e => console.warn("Autoplay blocked:", e));
+              } else {
+                document.querySelectorAll("a-video").forEach(p => p.setAttribute("visible", false));
+                videoEl.pause();
+              }
+            };
+
+            animateButton.addEventListener("click", () => {
+              window.isAnimatePressed = !window.isAnimatePressed;
+              // Hide info link button when video appears
+              if (window.isAnimatePressed) {
+                infoLinkButton.style.display = "none";
+                infoButton.classList.remove("pressed");
+              }
+              animateButton.classList.toggle("pressed", window.isAnimatePressed);
+              checkAndPlayVideo();
+            });
+
+            infoButton.addEventListener("click", () => {
+              const isHidden = infoLinkButton.style.display !== "block";
+              infoButton.classList.toggle("pressed", isHidden);
+              
+              if (isHidden) {
+                // Start tracking button position when showing
+                this.updateButtonPosition();
+                // Hide video when showing button
+                document.querySelectorAll("a-video").forEach(p => p.setAttribute("visible", false));
+                videoEl.pause();
+                window.isAnimatePressed = false;
+                animateButton.classList.remove("pressed");
+              } else {
+                infoLinkButton.style.display = "none";
+              }
+            });
+          }
+
+                     this.el.addEventListener("targetFound", () => {
+             window.targetStates[targetIndex] = true;
+             window.currentVideoPlane = thisVideoPlane;
+             animateButton.style.display = "block";
+             infoButton.style.display = "block";
+             
+             // Add special class for target 2
+             if (targetIndex === 2) {
+               infoLinkButton.classList.add("target-2");
+             } else {
+               infoLinkButton.classList.remove("target-2");
+             }
+             
+             if (window.isAnimatePressed) {
+               thisVideoPlane.setAttribute("visible", true);
+               videoEl.play().catch(e => console.warn("Autoplay blocked:", e));
+             }
+           });
+
+                     this.el.addEventListener("targetLost", () => {
+             window.targetStates[targetIndex] = false;
+             thisVideoPlane.setAttribute("visible", false);
+             const anyFound = Object.values(window.targetStates).some(s => s);
+             if (!anyFound) {
+               window.currentVideoPlane = null;
+               videoEl.pause();
+               animateButton.style.display = "none";
+               infoButton.style.display = "none";
+               infoLinkButton.style.display = "none";
+               window.isAnimatePressed = false;
+               animateButton.classList.remove("pressed");
+               infoButton.classList.remove("pressed");
+               infoLinkButton.classList.remove("target-2");
+             } else {
+               for (let i in window.targetStates) {
+                 if (window.targetStates[i]) {
+                   const activeTarget = document.querySelector(`[mindar-image-target="targetIndex: ${i}"]`);
+                   if (activeTarget) {
+                     window.currentVideoPlane = activeTarget.querySelector("a-video");
+                     // Update button class based on current active target
+                     const currentTargetIndex = parseInt(activeTarget.getAttribute("mindar-image-target").targetIndex);
+                     if (currentTargetIndex === 2) {
+                       infoLinkButton.classList.add("target-2");
+                     } else {
+                       infoLinkButton.classList.remove("target-2");
+                     }
+                     break;
+                   }
+                 }
+               }
+             }
+           });
+
+          // Add this method to track AR target position
+          this.updateButtonPosition = () => {
+            if (infoButton.classList.contains("pressed")) {
+              // Find any active target to track
+              let activeTargetEl = null;
+              let activeTargetIndex = null;
+              for (let i in window.targetStates) {
+                if (window.targetStates[i]) {
+                  activeTargetEl = document.querySelector(`[mindar-image-target="targetIndex: ${i}"]`);
+                  activeTargetIndex = parseInt(i);
+                  break;
+                }
+              }
+              
+              if (activeTargetEl) {
+                const camera = document.querySelector('a-camera');
+                
+                // Get world position of the target
+                const targetWorldPos = new THREE.Vector3();
+                activeTargetEl.object3D.getWorldPosition(targetWorldPos);
+                
+                // Project to screen coordinates
+                const canvas = document.querySelector('a-scene').canvas;
+                const rect = canvas.getBoundingClientRect();
+                
+                targetWorldPos.project(camera.components.camera.camera);
+                
+                const x = (targetWorldPos.x * 0.5 + 0.5) * rect.width + rect.left;
+                const y = (-targetWorldPos.y * 0.5 + 0.5) * rect.height + rect.top;
+                
+                // Position button relative to target with different positioning for target 2
+                if (activeTargetIndex === 2) {
+                  // Custom positioning for target index 2
+                  infoLinkButton.style.left = (x + 30) + 'px';  // Move further right
+                  infoLinkButton.style.top = (y - 60) + 'px';   // Move higher up
+                } else {
+                  // Default positioning for other targets
+                  infoLinkButton.style.left = (x + 40) + 'px';
+                  infoLinkButton.style.top = (y - 65) + 'px';
+                }
+                infoLinkButton.style.display = 'block';
+              }
+              
+              requestAnimationFrame(this.updateButtonPosition);
+            }
+          };
+        }
       });
-    });
-  </script>
-</body>
+    </script>
+  </body>
 </html>
-
