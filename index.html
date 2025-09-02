@@ -35,19 +35,30 @@
           background: linear-gradient(135deg, #8d6e63 0%, #4e342e 100%);
           color: white;
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: center;
+          padding-top: 30vh;
           font-size: 20px;
           font-family: 'Arial', sans-serif;
           font-weight: 300;
           text-align: center;
           z-index: 9999;
-          padding: 40px;
+          padding-left: 40px;
+          padding-right: 40px;
           box-sizing: border-box;
           letter-spacing: 0.5px;
           line-height: 1.4;
         }
-
+        .rotate-gif {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 100px;
+          height: 100px;
+          z-index: 10001;
+          display: block;
+        }
         a-scene {
           display: none !important;
         }
@@ -60,6 +71,10 @@
       @media screen and (orientation: landscape) {
         a-scene {
           display: block !important;
+        }
+        
+        .rotate-gif {
+          display: none !important;
         }
       }
 
@@ -198,6 +213,7 @@
   </head>
 
   <body>
+    <img src="https://FAiRarWeb.github.io/project/rotate.gif" alt="Rotate device" class="rotate-gif" />
     <a-scene
       mindar-image="imageTargetSrc: https://FAiRarWeb.github.io/project/targets.mind;
                     uiScanning: true;
@@ -449,3 +465,4 @@
     </script>
   </body>
 </html>
+
